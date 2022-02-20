@@ -12,7 +12,7 @@ type Exchange struct {
 	InterationRule    InterationRuleType
 }
 
-func(environment *space.Environment, position *space.Point) space.Point
+type MotionRuleType func(environment *space.Environment, position *space.Point) space.Point
 
 type MobileAgent struct {
 	Position   space.Point
