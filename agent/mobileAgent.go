@@ -4,12 +4,24 @@ import (
 	"github.com/arbori/population.git/population/space"
 )
 
-type InterationRuleType func(a1 *MobileAgent, a2 *MobileAgent)
+type InterationRuleType func(a1 *MobileAgent, a2 *MobileAgent, contribuitionProbability float32, exchangeRate float32)
 
 type Exchange struct {
-	ContribuitionRate float32
-	ExchangeRate      float32
-	InterationRule    InterationRuleType
+	ContribuitionProbability float32
+	ExchangeRate             float32
+	interationRule           InterationRuleType
+}
+
+func MakeExchange(contribuitionProbability float32, exchangeRate float32, interationRule InterationRuleType) Exchange {
+	return Exchange{
+		ContribuitionProbability: contribuitionProbability,
+		ExchangeRate:             exchangeRate,
+		interationRule:           interationRule,
+	}
+}
+
+func (e *Exchange) Interation(a1 *MobileAgent, a2 *MobileAgent) {
+	e.interationRule(a1, a2, e.ContribuitionProbability, e.ExchangeRate)
 }
 
 type MotionRuleType func(environment *space.Environment, position *space.Point) space.Point
