@@ -70,11 +70,19 @@ func (s *Environment) Neighborhood(x int, y int) []float32 {
 		j = s.neighborhoodMotion.Motion[index][0] + x
 		i = s.neighborhoodMotion.Motion[index][1] + y
 
-		if j < 0 || j >= s.X || i < 0 || i >= s.Y {
-			neighborhood[index] = 0.0
-		} else {
-			neighborhood[index] = s.Cells[j][i]
+		if j < 0 {
+			j = s.X + j
+		} else if j >= s.X {
+			j = j - s.X
 		}
+
+		if i < 0 {
+			i = s.Y + i
+		} else if i >= s.Y {
+			i = i - s.Y
+		}
+
+		neighborhood[index] = s.Cells[j][i]
 	}
 
 	return neighborhood
@@ -87,18 +95,16 @@ func (s *Environment) GetNewPosition(position *Point, directionChoosed int) Poin
 	}
 
 	if result.X < 0 {
-		result.X = 0
-	}
-	if result.X >= s.X {
-		result.X = s.X - 1
-	}
-	if result.Y < 0 {
-		result.Y = 0
-	}
-	if result.Y >= s.Y {
-		result.Y = s.Y - 1
+		result.X = s.X + result.X
+	} else if result.X >= s.X {
+		result.X = result.X - s.X
 	}
 
+	if result.Y < 0 {
+		result.Y = s.Y + result.Y
+	} else if result.Y >= s.Y {
+		result.Y = result.Y - s.Y
+	}
 
 	return result
 }

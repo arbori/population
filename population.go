@@ -2,11 +2,38 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/arbori/population.git/population/agent"
 	"github.com/arbori/population.git/population/rule"
 	"github.com/arbori/population.git/population/space"
 )
+
+func interationRuleDefinition(a1 *agent.MobileAgent, a2 *agent.MobileAgent, contribuitionProbability float32, exchangeRate float32) {
+	if a1.Position.X != a2.Position.X || a1.Position.Y != a2.Position.Y {
+		return
+	}
+
+	selfishness := rand.Float32()
+
+	if a1.Foodstuffs > a2.Foodstuffs {
+		if selfishness > contribuitionProbability {
+			a1.Foodstuffs = a1.Foodstuffs + exchangeRate*a2.Foodstuffs
+			a2.Foodstuffs = (1 - exchangeRate) * a2.Foodstuffs
+		} else {
+			a2.Foodstuffs = a2.Foodstuffs + exchangeRate*a1.Foodstuffs
+			a1.Foodstuffs = (1 - exchangeRate) * a1.Foodstuffs
+		}
+	} else {
+		if selfishness > contribuitionProbability {
+			a2.Foodstuffs = a2.Foodstuffs + exchangeRate*a1.Foodstuffs
+			a1.Foodstuffs = (1 - exchangeRate) * a1.Foodstuffs
+		} else {
+			a1.Foodstuffs = a1.Foodstuffs + exchangeRate*a2.Foodstuffs
+			a2.Foodstuffs = (1 - exchangeRate) * a2.Foodstuffs
+		}
+	}
+}
 
 func motionRuleDefinition(environment *space.Environment, position *space.Point) space.Point {
 	neighborhood := environment.Neighborhood(position.X, position.Y)
