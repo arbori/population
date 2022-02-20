@@ -3,15 +3,32 @@ package main
 import (
 	"fmt"
 
+	"github.com/arbori/population.git/population/agent"
 	"github.com/arbori/population.git/population/rule"
 	"github.com/arbori/population.git/population/space"
 )
 
+func motionRuleDefinition(environment *space.Environment, position *space.Point) space.Point {
+	neighborhood := environment.Neighborhood(position.X, position.Y)
+
+	var maxPosition int = 0
+	var maxValue float32 = neighborhood[maxPosition]
+
+	for i := 1; i < len(neighborhood); i += 1 {
+		if neighborhood[i] > maxValue {
+			maxPosition = i
+			maxValue = neighborhood[i]
+		}
+	}
+
+	return environment.GetNewPosition(position, maxPosition)
+}
+
 func main() {
 	fmt.Println("Hello, world.")
 
-	s := space.MakeSpace(5, 5)
 	motion := space.MakeNeighborhoodMotion(5, 2)
+	s := space.MakeEnvironment(5, 5, motion)
 
 	s.Cells[3][2] = 1
 	s.Cells[2][1] = 2
@@ -46,6 +63,26 @@ func main() {
 
 		fmt.Print("\n\n")
 
-		s.ApplyRule(spreadRule, motion)
+		s.ApplyRule(spreadRule)
 	}
+	for y := 0; y < s.Y; y += 1 {
+		for x := 0; x < s.X; x += 1 {
+			fmt.Print(s.Cells[x][y])
+			fmt.Print("\t")
+		}
+
+		fmt.Print("\n")
+	}
+
+	fmt.Print("\n\n")
+
+	agent := agent.MobileAgent{
+		Position: space.Point{
+			X: 1,
+			Y: 1,
+		},
+		MotionRule: motionRuleDefinition,
+	}
+
+	agent.Walk(&s)
 }

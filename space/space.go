@@ -4,6 +4,16 @@ import (
 	"github.com/arbori/population.git/population/rule"
 )
 
+type Point struct {
+	X int
+	Y int
+}
+
+func (p *Point) Add(point *Point) {
+	p.X = point.X
+	p.Y = point.Y
+}
+
 type NeighborhoodMotion struct {
 	Size      int
 	Dimention int
@@ -24,39 +34,41 @@ func MakeNeighborhoodMotion(size int, dimention int) NeighborhoodMotion {
 	return result
 }
 
-type Space struct {
-	X     int
-	Y     int
-	Cells [][]float32
+type Environment struct {
+	X                  int
+	Y                  int
+	neighborhoodMotion NeighborhoodMotion
+	Cells              [][]float32
 }
 
-func MakeSpace(X int, Y int) Space {
-	space := Space{
-		X:     X,
-		Y:     Y,
-		Cells: make([][]float32, X),
+func MakeEnvironment(X int, Y int, neighborhoodMotion NeighborhoodMotion) Environment {
+	environment := Environment{
+		X:                  X,
+		Y:                  Y,
+		neighborhoodMotion: neighborhoodMotion,
+		Cells:              make([][]float32, X),
 	}
 
-	for x := 0; x < space.X; x += 1 {
-		space.Cells[x] = make([]float32, Y)
+	for x := 0; x < environment.X; x += 1 {
+		environment.Cells[x] = make([]float32, Y)
 	}
 
-	return space
+	return environment
 }
 
-func (s *Space) Neighborhood(motion NeighborhoodMotion, x int, y int) []float32 {
-	neighborhood := make([]float32, motion.Size)
+func (s *Environment) Neighborhood(x int, y int) []float32 {
+	neighborhood := make([]float32, s.neighborhoodMotion.Size)
 
-	if len(motion.Motion) == 0 || len(motion.Motion) != motion.Size || len(motion.Motion[0]) != motion.Dimention {
+	if len(s.neighborhoodMotion.Motion) == 0 || len(s.neighborhoodMotion.Motion) != s.neighborhoodMotion.Size || len(s.neighborhoodMotion.Motion[0]) != s.neighborhoodMotion.Dimention {
 		return neighborhood
 	}
 
 	var i int
 	var j int
 
-	for index := 0; index < motion.Size; index += 1 {
-		j = motion.Motion[index][0] + x
-		i = motion.Motion[index][1] + y
+	for index := 0; index < s.neighborhoodMotion.Size; index += 1 {
+		j = s.neighborhoodMotion.Motion[index][0] + x
+		i = s.neighborhoodMotion.Motion[index][1] + y
 
 		if j < 0 || j >= s.X || i < 0 || i >= s.Y {
 			neighborhood[index] = 0.0
@@ -68,10 +80,33 @@ func (s *Space) Neighborhood(motion NeighborhoodMotion, x int, y int) []float32 
 	return neighborhood
 }
 
-func (s *Space) ApplyRule(r rule.Rule, motion NeighborhoodMotion) {
+func (s *Environment) GetNewPosition(position *Point, directionChoosed int) Point {
+	result := Point{
+		X: s.neighborhoodMotion.Motion[directionChoosed][0] + position.X,
+		Y: s.neighborhoodMotion.Motion[directionChoosed][1] + position.Y,
+	}
+
+	if result.X < 0 {
+		result.X = 0
+	}
+	if result.X >= s.X {
+		result.X = s.X - 1
+	}
+	if result.Y < 0 {
+		result.Y = 0
+	}
+	if result.Y >= s.Y {
+		result.Y = s.Y - 1
+	}
+
+
+	return result
+}
+
+func (s *Environment) ApplyRule(r rule.Rule) {
 	for y := 0; y < s.Y; y += 1 {
 		for x := 0; x < s.X; x += 1 {
-			s.Cells[x][y] = r.Transition(s.Neighborhood(motion, x, y))
+			s.Cells[x][y] = r.Transition(s.Neighborhood(x, y))
 		}
 	}
 }
