@@ -17,7 +17,7 @@ func (rule SpreadRuleVonNeumann) Transition(neighborhood []float32) float32 {
 		return result
 	}
 
-	result = (1-rule.Decay)*neighborhood[4] + (rule.Decay/float32(size))*(neighborhood[0]+neighborhood[1]+neighborhood[2]+neighborhood[3])
+	result = (1-rule.Decay)*neighborhood[0] + (rule.Decay/float32(size))*(neighborhood[1]+neighborhood[2]+neighborhood[3]+neighborhood[4])
 
 	return result
 }
