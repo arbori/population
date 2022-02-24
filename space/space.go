@@ -10,8 +10,8 @@ type Point struct {
 }
 
 func (p *Point) Add(point *Point) {
-	p.X = point.X
-	p.Y = point.Y
+	p.X += point.X
+	p.Y += point.Y
 }
 
 type NeighborhoodMotion struct {
