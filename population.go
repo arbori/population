@@ -50,38 +50,49 @@ func motionRuleDefinition(environment *space.Environment, position *space.Point)
 
 	return environment.GetNewPosition(position, maxPosition)
 }
+func constructNeighborhoodMotion() space.NeighborhoodMotion {
+	motion := space.MakeNeighborhoodMotion(5, 2)
+
+	motion.Motion[0][0] = 0
+	motion.Motion[0][1] = 0
+
+	motion.Motion[1][0] = -1
+	motion.Motion[1][1] = 0
+
+	motion.Motion[2][0] = 0
+	motion.Motion[2][1] = 1
+
+	motion.Motion[3][0] = +1
+	motion.Motion[3][1] = 0
+
+	motion.Motion[4][0] = 0
+	motion.Motion[4][0] = -1
+
+	return motion
+}
+
+func constructEnvironment(motion *space.NeighborhoodMotion) space.Environment {
+	environment := space.MakeEnvironment(5, 5, motion)
+
+	environment.Cells[2][2] = 7
+
+	return environment
+}
 
 func main() {
 	fmt.Println("Hello, world.")
 
-	motion := space.MakeNeighborhoodMotion(5, 2)
-	s := space.MakeEnvironment(5, 5, motion)
-
-	s.Cells[3][2] = 1
-	s.Cells[2][1] = 2
-	s.Cells[1][2] = 3
-	s.Cells[2][3] = 4
-	s.Cells[2][2] = 5
-
-	motion.Motion[0][0] = +1
-	motion.Motion[0][1] = 0
-	motion.Motion[1][0] = 0
-	motion.Motion[1][1] = -1
-	motion.Motion[2][0] = -1
-	motion.Motion[2][1] = 0
-	motion.Motion[3][0] = 0
-	motion.Motion[3][1] = +1
-	motion.Motion[4][0] = 0
-	motion.Motion[4][0] = 0
+	motion := constructNeighborhoodMotion()
+	environment := constructEnvironment(&motion)
 
 	spreadRule := rule.SpreadRuleVonNeumann{
 		Decay: .15,
 	}
 
 	for t := 0; t < 5; t += 1 {
-		for y := 0; y < s.Y; y += 1 {
-			for x := 0; x < s.X; x += 1 {
-				fmt.Print(s.Cells[x][y])
+		for y := 0; y < environment.Y; y += 1 {
+			for x := 0; x < environment.X; x += 1 {
+				fmt.Printf("%.2f", environment.Cells[x][y])
 				fmt.Print("\t")
 			}
 
@@ -90,11 +101,11 @@ func main() {
 
 		fmt.Print("\n\n")
 
-		s.ApplyRule(spreadRule)
+		environment.ApplyRule(spreadRule)
 	}
-	for y := 0; y < s.Y; y += 1 {
-		for x := 0; x < s.X; x += 1 {
-			fmt.Print(s.Cells[x][y])
+	for y := 0; y < environment.Y; y += 1 {
+		for x := 0; x < environment.X; x += 1 {
+			fmt.Printf("%.2f", environment.Cells[x][y])
 			fmt.Print("\t")
 		}
 
@@ -111,5 +122,5 @@ func main() {
 		MotionRule: motionRuleDefinition,
 	}
 
-	agent.Walk(&s)
+	agent.Walk(&environment)
 }

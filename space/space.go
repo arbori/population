@@ -41,11 +41,11 @@ type Environment struct {
 	Cells              [][]float32
 }
 
-func MakeEnvironment(X int, Y int, neighborhoodMotion NeighborhoodMotion) Environment {
+func MakeEnvironment(X int, Y int, neighborhoodMotion *NeighborhoodMotion) Environment {
 	environment := Environment{
 		X:                  X,
 		Y:                  Y,
-		neighborhoodMotion: neighborhoodMotion,
+		neighborhoodMotion: *neighborhoodMotion,
 		Cells:              make([][]float32, X),
 	}
 
