@@ -31,7 +31,7 @@ func TestSetup(t *testing.T) {
 
 	XEnvironment = 15
 	YEnvironment = 17
-	environment = MakeEnvironment(XEnvironment, YEnvironment, neighborhoodMotion)
+	environment = MakeEnvironment(XEnvironment, YEnvironment, &neighborhoodMotion)
 
 }
 

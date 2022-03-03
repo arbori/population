@@ -9,6 +9,11 @@ type Point struct {
 	Y int
 }
 
+func (p *Point) Assign(point *Point) {
+	p.X = point.X
+	p.Y = point.Y
+}
+
 func (p *Point) Add(point *Point) {
 	p.X += point.X
 	p.Y += point.Y
