@@ -37,82 +37,91 @@ func MakeNeighborhoodMotion(size int, dimention int) NeighborhoodMotion {
 type Environment struct {
 	X                  int
 	Y                  int
-	neighborhoodMotion NeighborhoodMotion
 	Cells              [][]float32
+	mirror             [][]float32
+	neighborhoodMotion NeighborhoodMotion
 }
 
 func MakeEnvironment(X int, Y int, neighborhoodMotion *NeighborhoodMotion) Environment {
 	environment := Environment{
 		X:                  X,
 		Y:                  Y,
-		neighborhoodMotion: *neighborhoodMotion,
 		Cells:              make([][]float32, X),
+		mirror:             make([][]float32, X),
+		neighborhoodMotion: *neighborhoodMotion,
 	}
 
 	for x := 0; x < environment.X; x += 1 {
 		environment.Cells[x] = make([]float32, Y)
+		environment.mirror[x] = make([]float32, Y)
 	}
 
 	return environment
 }
 
-func (s *Environment) Neighborhood(x int, y int) []float32 {
-	neighborhood := make([]float32, s.neighborhoodMotion.Size)
+func (e *Environment) Neighborhood(x int, y int) []float32 {
+	neighborhood := make([]float32, e.neighborhoodMotion.Size)
 
-	if len(s.neighborhoodMotion.Motion) == 0 || len(s.neighborhoodMotion.Motion) != s.neighborhoodMotion.Size || len(s.neighborhoodMotion.Motion[0]) != s.neighborhoodMotion.Dimention {
+	if len(e.neighborhoodMotion.Motion) == 0 || len(e.neighborhoodMotion.Motion) != e.neighborhoodMotion.Size || len(e.neighborhoodMotion.Motion[0]) != e.neighborhoodMotion.Dimention {
 		return neighborhood
 	}
 
 	var i int
 	var j int
 
-	for index := 0; index < s.neighborhoodMotion.Size; index += 1 {
-		j = s.neighborhoodMotion.Motion[index][0] + x
-		i = s.neighborhoodMotion.Motion[index][1] + y
+	for index := 0; index < e.neighborhoodMotion.Size; index += 1 {
+		j = e.neighborhoodMotion.Motion[index][0] + x
+		i = e.neighborhoodMotion.Motion[index][1] + y
 
 		if j < 0 {
-			j = s.X + j
-		} else if j >= s.X {
-			j = j - s.X
+			j = e.X + j
+		} else if j >= e.X {
+			j = j - e.X
 		}
 
 		if i < 0 {
-			i = s.Y + i
-		} else if i >= s.Y {
-			i = i - s.Y
+			i = e.Y + i
+		} else if i >= e.Y {
+			i = i - e.Y
 		}
 
-		neighborhood[index] = s.Cells[j][i]
+		neighborhood[index] = e.Cells[j][i]
 	}
 
 	return neighborhood
 }
 
-func (s *Environment) GetNewPosition(position *Point, directionChoosed int) Point {
+func (e *Environment) GetNewPosition(position *Point, directionChoosed int) Point {
 	result := Point{
-		X: s.neighborhoodMotion.Motion[directionChoosed][0] + position.X,
-		Y: s.neighborhoodMotion.Motion[directionChoosed][1] + position.Y,
+		X: e.neighborhoodMotion.Motion[directionChoosed][0] + position.X,
+		Y: e.neighborhoodMotion.Motion[directionChoosed][1] + position.Y,
 	}
 
 	if result.X < 0 {
-		result.X = s.X + result.X
-	} else if result.X >= s.X {
-		result.X = result.X - s.X
+		result.X = e.X + result.X
+	} else if result.X >= e.X {
+		result.X = result.X - e.X
 	}
 
 	if result.Y < 0 {
-		result.Y = s.Y + result.Y
-	} else if result.Y >= s.Y {
-		result.Y = result.Y - s.Y
+		result.Y = e.Y + result.Y
+	} else if result.Y >= e.Y {
+		result.Y = result.Y - e.Y
 	}
 
 	return result
 }
 
-func (s *Environment) ApplyRule(r rule.Rule) {
-	for y := 0; y < s.Y; y += 1 {
-		for x := 0; x < s.X; x += 1 {
-			s.Cells[x][y] = r.Transition(s.Neighborhood(x, y))
+func (e *Environment) ApplyRule(r rule.Rule) {
+	for y := 0; y < e.Y; y += 1 {
+		for x := 0; x < e.X; x += 1 {
+			e.mirror[x][y] = r.Transition(e.Neighborhood(x, y))
+		}
+	}
+
+	for y := 0; y < e.Y; y += 1 {
+		for x := 0; x < e.X; x += 1 {
+			e.Cells[x][y] = e.mirror[x][y]
 		}
 	}
 }

@@ -66,7 +66,7 @@ func constructNeighborhoodMotion() space.NeighborhoodMotion {
 	motion.Motion[3][1] = 0
 
 	motion.Motion[4][0] = 0
-	motion.Motion[4][0] = -1
+	motion.Motion[4][1] = -1
 
 	return motion
 }
