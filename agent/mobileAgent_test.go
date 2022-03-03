@@ -52,7 +52,7 @@ func motionRuleDefinition(environment *space.Environment, position *space.Point)
 
 func makeEnvironmentForTest() space.Environment {
 	motion := space.MakeNeighborhoodMotion(5, 2)
-	environment := space.MakeEnvironment(5, 5, motion)
+	environment := space.MakeEnvironment(5, 5, &motion)
 
 	motion.Motion[0][0] = +1
 	motion.Motion[0][1] = 0
