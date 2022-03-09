@@ -85,7 +85,7 @@ func constructNeighborhoodMotion() space.NeighborhoodMotion {
 }
 
 func constructEnvironment(motion *space.NeighborhoodMotion) space.Environment {
-	environment := space.MakeEnvironment(5, 5, motion)
+	environment := space.MakeEnvironment(5, 5, motion, .05)
 
 	return environment
 }
@@ -120,7 +120,7 @@ func main() {
 		environment.Cells[agents[a].Position.X][agents[a].Position.Y] = agents[a].Foodstuffs
 	}
 
-	for true { //t := 0; t < 150; t += 1 {
+	for t := 0; t < 5; t += 1 {
 		for y := 0; y < environment.Y; y += 1 {
 			for x := 0; x < environment.X; x += 1 {
 				fmt.Printf("%.2f", environment.Cells[x][y])
@@ -134,10 +134,12 @@ func main() {
 
 		environment.ApplyRule(spreadRule)
 		for a := 0; a < len(agents); a += 1 {
-			agents[a].Walk(&environment)
+			//	agents[a].Walk(&environment)
+			agents[a].Foodstuffs *= (1 - environment.Inertia)
 			environment.Cells[agents[a].Position.X][agents[a].Position.Y] = agents[a].Foodstuffs
 		}
 	}
+
 	for y := 0; y < environment.Y; y += 1 {
 		for x := 0; x < environment.X; x += 1 {
 			fmt.Printf("%.2f", environment.Cells[x][y])
