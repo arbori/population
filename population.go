@@ -50,8 +50,9 @@ func motionRuleDefinition(environment *space.Environment, position *space.Point)
 
 	return environment.GetNewPosition(position, maxPosition)
 }
+
 func constructNeighborhoodMotion() space.NeighborhoodMotion {
-	motion := space.MakeNeighborhoodMotion(5, 2)
+	motion := space.MakeNeighborhoodMotion(9, 2)
 
 	motion.Motion[0][0] = 0
 	motion.Motion[0][1] = 0
@@ -59,34 +60,64 @@ func constructNeighborhoodMotion() space.NeighborhoodMotion {
 	motion.Motion[1][0] = -1
 	motion.Motion[1][1] = 0
 
-	motion.Motion[2][0] = 0
+	motion.Motion[2][0] = -1
 	motion.Motion[2][1] = 1
 
-	motion.Motion[3][0] = +1
-	motion.Motion[3][1] = 0
+	motion.Motion[3][0] = 0
+	motion.Motion[3][1] = 1
 
-	motion.Motion[4][0] = 0
-	motion.Motion[4][1] = -1
+	motion.Motion[4][0] = 1
+	motion.Motion[4][1] = 1
+
+	motion.Motion[5][0] = 1
+	motion.Motion[5][1] = 0
+
+	motion.Motion[6][0] = 1
+	motion.Motion[6][1] = -1
+
+	motion.Motion[7][0] = 0
+	motion.Motion[7][1] = -1
+
+	motion.Motion[8][0] = -1
+	motion.Motion[8][1] = -1
 
 	return motion
 }
 
 func constructEnvironment(motion *space.NeighborhoodMotion) space.Environment {
-	environment := space.MakeEnvironment(5, 5, motion)
-
-	environment.Cells[2][2] = 7
+	environment := space.MakeEnvironment(5, 5, motion, .05)
 
 	return environment
 }
 
 func main() {
-	fmt.Println("Hello, world.")
-
 	motion := constructNeighborhoodMotion()
 	environment := constructEnvironment(&motion)
 
-	spreadRule := rule.SpreadRuleVonNeumann{
+	spreadRule := rule.SpreadRuleMoore{
 		Decay: .15,
+	}
+
+	agents := make([]agent.MobileAgent, 2)
+	agents[0] = agent.MobileAgent{
+		Position: space.Point{
+			X: 1,
+			Y: 1,
+		},
+		Foodstuffs: 7.0,
+		MotionRule: motionRuleDefinition,
+	}
+	agents[1] = agent.MobileAgent{
+		Position: space.Point{
+			X: 3,
+			Y: 3,
+		},
+		Foodstuffs: 5.0,
+		MotionRule: motionRuleDefinition,
+	}
+
+	for a := 0; a < len(agents); a += 1 {
+		environment.Cells[agents[a].Position.X][agents[a].Position.Y] = agents[a].Foodstuffs
 	}
 
 	for t := 0; t < 5; t += 1 {
@@ -102,7 +133,13 @@ func main() {
 		fmt.Print("\n\n")
 
 		environment.ApplyRule(spreadRule)
+		for a := 0; a < len(agents); a += 1 {
+			//	agents[a].Walk(&environment)
+			agents[a].Foodstuffs *= (1 - environment.Inertia)
+			environment.Cells[agents[a].Position.X][agents[a].Position.Y] = agents[a].Foodstuffs
+		}
 	}
+
 	for y := 0; y < environment.Y; y += 1 {
 		for x := 0; x < environment.X; x += 1 {
 			fmt.Printf("%.2f", environment.Cells[x][y])
@@ -113,14 +150,4 @@ func main() {
 	}
 
 	fmt.Print("\n\n")
-
-	agent := agent.MobileAgent{
-		Position: space.Point{
-			X: 1,
-			Y: 1,
-		},
-		MotionRule: motionRuleDefinition,
-	}
-
-	agent.Walk(&environment)
 }

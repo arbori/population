@@ -35,5 +35,5 @@ type MobileAgent struct {
 func (a *MobileAgent) Walk(env *space.Environment) {
 	velocity := a.MotionRule(env, &a.Position)
 
-	a.Position.Add(&velocity)
+	a.Position.Assign(&velocity)
 }

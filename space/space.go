@@ -9,6 +9,11 @@ type Point struct {
 	Y int
 }
 
+func (p *Point) Assign(point *Point) {
+	p.X = point.X
+	p.Y = point.Y
+}
+
 func (p *Point) Add(point *Point) {
 	p.X += point.X
 	p.Y += point.Y
@@ -40,15 +45,17 @@ type Environment struct {
 	Cells              [][]float32
 	mirror             [][]float32
 	neighborhoodMotion NeighborhoodMotion
+	Inertia            float32
 }
 
-func MakeEnvironment(X int, Y int, neighborhoodMotion *NeighborhoodMotion) Environment {
+func MakeEnvironment(X int, Y int, neighborhoodMotion *NeighborhoodMotion, inertia float32) Environment {
 	environment := Environment{
 		X:                  X,
 		Y:                  Y,
 		Cells:              make([][]float32, X),
 		mirror:             make([][]float32, X),
 		neighborhoodMotion: *neighborhoodMotion,
+		Inertia:            inertia,
 	}
 
 	for x := 0; x < environment.X; x += 1 {
