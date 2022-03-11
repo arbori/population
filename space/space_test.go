@@ -18,40 +18,52 @@ func TestSetup(t *testing.T) {
 	dimention = 2
 
 	neighborhoodMotion = MakeNeighborhoodMotion(size, dimention)
-	neighborhoodMotion.Motion[0][0] = +1
-	neighborhoodMotion.Motion[0][1] = 0
-	neighborhoodMotion.Motion[1][0] = 0
-	neighborhoodMotion.Motion[1][1] = -1
-	neighborhoodMotion.Motion[2][0] = -1
-	neighborhoodMotion.Motion[2][1] = 0
-	neighborhoodMotion.Motion[3][0] = 0
-	neighborhoodMotion.Motion[3][1] = +1
-	neighborhoodMotion.Motion[4][0] = 0
-	neighborhoodMotion.Motion[4][0] = 0
+	neighborhoodMotion.Motion[0] = NewPoint(1, 0)
+	neighborhoodMotion.Motion[1] = NewPoint(0, -1)
+	neighborhoodMotion.Motion[2] = NewPoint(-1, 0)
+	neighborhoodMotion.Motion[3] = NewPoint(0, +1)
+	neighborhoodMotion.Motion[4] = NewPoint(0, 0)
 
 	XEnvironment = 15
 	YEnvironment = 17
 	environment = MakeEnvironment(XEnvironment, YEnvironment, &neighborhoodMotion, .1)
-
 }
 
-func TestPointAdd(t *testing.T) {
-	p1 := Point{
-		X: 3,
-		Y: 2,
+func TestPointAssignDiferentDimentions(t *testing.T) {
+	p1 := NewPoint(0, 1)
+	p2 := NewPoint(0, 1, 2)
+
+	err := p1.Assign(&p2)
+
+	if err == nil {
+		t.Error("Two points with different dimentions can not be assign.")
+	}
+}
+
+func TestPointExAddDiferentDimentions(t *testing.T) {
+	p1 := NewPoint(0, 1)
+	p2 := NewPoint(0, 1, 2)
+
+	err := p1.Add(&p2)
+
+	if err == nil {
+		t.Error("Two points with different dimentions can not be add.")
+	}
+}
+
+func TestPointExAdd(t *testing.T) {
+	p1 := NewPoint(1, 2)
+	p2 := NewPoint(2, 1)
+	expected := NewPoint(3, 3)
+
+	err := p1.Add(&p2)
+
+	if err != nil {
+		t.Error(err)
 	}
 
-	p2 := Point{
-		X: 2,
-		Y: 3,
-	}
-
-	p2.Add(&p1)
-
-	fmt.Println("Expected point cordinate are (5, 5).")
-
-	if p2.X != 5 || p2.Y != 5 {
-		t.Fatalf("Point.Add is wrong. Actual coordinate are (%d, %d)\n", p2.X, p2.Y)
+	if p1.X[0] != expected.X[0] || p1.X[1] != expected.X[1] {
+		t.Error("Error add two points")
 	}
 }
 
@@ -62,13 +74,13 @@ func TestNeighborhoodMotionCreation(t *testing.T) {
 	}
 
 	fmt.Printf("neighborhoodMotion.Dimention supose to be %d\n", size)
-	if neighborhoodMotion.Dimention != dimention {
-		t.Errorf("neighborhoodMotion.Dimention actual value: %d\n", neighborhoodMotion.Dimention)
+	if neighborhoodMotion.Motion[0].Dim != dimention {
+		t.Errorf("neighborhoodMotion.Dimention actual value: %d\n", neighborhoodMotion.Motion[0].Dim)
 	}
 
 	fmt.Printf("neighborhoodMotion.Motion must folow length Size and Dimention\n")
-	if len(neighborhoodMotion.Motion) != size || len(neighborhoodMotion.Motion[0]) != dimention {
-		t.Errorf("neighborhoodMotion.Motion have size and dimention, respectively %d and %d\n", len(neighborhoodMotion.Motion), len(neighborhoodMotion.Motion[0]))
+	if len(neighborhoodMotion.Motion) != size || neighborhoodMotion.Motion[0].Dim != dimention {
+		t.Errorf("neighborhoodMotion.Motion have size and dimention, respectively %d and %d\n", len(neighborhoodMotion.Motion), neighborhoodMotion.Motion[0].Dim)
 	}
 }
 
@@ -117,18 +129,12 @@ func TestNeighborhood(t *testing.T) {
 }
 
 func TestEnvironmentNewPosition(t *testing.T) {
-	point := Point{
-		X: 1,
-		Y: 1,
-	}
-	expectedPoint := Point{
-		X: 0,
-		Y: 1,
-	}
+	point := NewPoint(1, 1)
+	expectedPoint := NewPoint(0, 1)
 
 	newPosition := environment.GetNewPosition(&point, 2)
 
-	if expectedPoint.X != newPosition.X || expectedPoint.Y != newPosition.Y {
-		t.Fatalf("The movimento to the wrong point (%d, %d). The expected position is (%d, %d).\n", newPosition.X, newPosition.Y, expectedPoint.X, expectedPoint.Y)
+	if expectedPoint.X[0] != newPosition.X[0] || expectedPoint.X[1] != newPosition.X[1] {
+		t.Fatalf("The movimento to the wrong point (%d, %d). The expected position is (%d, %d).\n", newPosition.X[0], newPosition.X[1], expectedPoint.X[0], expectedPoint.X[1])
 	}
 }

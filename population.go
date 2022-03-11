@@ -10,7 +10,7 @@ import (
 )
 
 func interationRuleDefinition(a1 *agent.MobileAgent, a2 *agent.MobileAgent, contribuitionProbability float32, exchangeRate float32) {
-	if a1.Position.X != a2.Position.X || a1.Position.Y != a2.Position.Y {
+	if a1.Position.X[0] != a2.Position.X[0] || a1.Position.X[1] != a2.Position.X[1] {
 		return
 	}
 
@@ -36,7 +36,7 @@ func interationRuleDefinition(a1 *agent.MobileAgent, a2 *agent.MobileAgent, cont
 }
 
 func motionRuleDefinition(environment *space.Environment, position *space.Point) space.Point {
-	neighborhood := environment.Neighborhood(position.X, position.Y)
+	neighborhood := environment.Neighborhood(position.X[0], position.X[1])
 
 	var maxPosition int = 0
 	var maxValue float32 = neighborhood[maxPosition]
@@ -51,35 +51,30 @@ func motionRuleDefinition(environment *space.Environment, position *space.Point)
 	return environment.GetNewPosition(position, maxPosition)
 }
 
-func constructNeighborhoodMotion() space.NeighborhoodMotion {
+func constructVonNeumannNeighborhoodMotion() space.NeighborhoodMotion {
+	motion := space.MakeNeighborhoodMotion(5, 2)
+
+	motion.Motion[0] = space.NewPoint(0, 0)
+	motion.Motion[1] = space.NewPoint(-1, 0)
+	motion.Motion[2] = space.NewPoint(0, 1)
+	motion.Motion[3] = space.NewPoint(1, 0)
+	motion.Motion[4] = space.NewPoint(0, -1)
+
+	return motion
+}
+
+func constructMooreNeighborhoodMotion() space.NeighborhoodMotion {
 	motion := space.MakeNeighborhoodMotion(9, 2)
 
-	motion.Motion[0][0] = 0
-	motion.Motion[0][1] = 0
-
-	motion.Motion[1][0] = -1
-	motion.Motion[1][1] = 0
-
-	motion.Motion[2][0] = -1
-	motion.Motion[2][1] = 1
-
-	motion.Motion[3][0] = 0
-	motion.Motion[3][1] = 1
-
-	motion.Motion[4][0] = 1
-	motion.Motion[4][1] = 1
-
-	motion.Motion[5][0] = 1
-	motion.Motion[5][1] = 0
-
-	motion.Motion[6][0] = 1
-	motion.Motion[6][1] = -1
-
-	motion.Motion[7][0] = 0
-	motion.Motion[7][1] = -1
-
-	motion.Motion[8][0] = -1
-	motion.Motion[8][1] = -1
+	motion.Motion[0] = space.NewPoint(0, 0)
+	motion.Motion[1] = space.NewPoint(-1, 0)
+	motion.Motion[2] = space.NewPoint(-1, 1)
+	motion.Motion[3] = space.NewPoint(0, 1)
+	motion.Motion[4] = space.NewPoint(1, 1)
+	motion.Motion[5] = space.NewPoint(1, 0)
+	motion.Motion[6] = space.NewPoint(1, -1)
+	motion.Motion[7] = space.NewPoint(0, -1)
+	motion.Motion[8] = space.NewPoint(-1, -1)
 
 	return motion
 }
@@ -91,7 +86,7 @@ func constructEnvironment(motion *space.NeighborhoodMotion) space.Environment {
 }
 
 func main() {
-	motion := constructNeighborhoodMotion()
+	motion := constructVonNeumannNeighborhoodMotion()
 	environment := constructEnvironment(&motion)
 
 	spreadRule := rule.SpreadRuleMoore{
@@ -100,24 +95,18 @@ func main() {
 
 	agents := make([]agent.MobileAgent, 2)
 	agents[0] = agent.MobileAgent{
-		Position: space.Point{
-			X: 1,
-			Y: 1,
-		},
+		Position:   space.NewPoint(1, 1),
 		Foodstuffs: 7.0,
 		MotionRule: motionRuleDefinition,
 	}
 	agents[1] = agent.MobileAgent{
-		Position: space.Point{
-			X: 3,
-			Y: 3,
-		},
+		Position:   space.NewPoint(3, 3),
 		Foodstuffs: 5.0,
 		MotionRule: motionRuleDefinition,
 	}
 
 	for a := 0; a < len(agents); a += 1 {
-		environment.Cells[agents[a].Position.X][agents[a].Position.Y] = agents[a].Foodstuffs
+		environment.Cells[agents[a].Position.X[0]][agents[a].Position.X[1]] = agents[a].Foodstuffs
 	}
 
 	for t := 0; t < 5; t += 1 {
@@ -133,11 +122,11 @@ func main() {
 		fmt.Print("\n\n")
 
 		environment.ApplyRule(spreadRule)
-		for a := 0; a < len(agents); a += 1 {
-			//	agents[a].Walk(&environment)
-			agents[a].Foodstuffs *= (1 - environment.Inertia)
-			environment.Cells[agents[a].Position.X][agents[a].Position.Y] = agents[a].Foodstuffs
-		}
+		//for a := 0; a < len(agents); a += 1 {
+		//	agents[a].Walk(&environment)
+		//	agents[a].Foodstuffs *= (1 - environment.Inertia)
+		//	environment.Cells[agents[a].Position.X][agents[a].Position.Y] = agents[a].Foodstuffs
+		//}
 	}
 
 	for y := 0; y < environment.Y; y += 1 {

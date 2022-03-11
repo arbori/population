@@ -9,7 +9,7 @@ import (
 )
 
 func interationRuleDefinition(a1 *MobileAgent, a2 *MobileAgent, contribuitionProbability float32, exchangeRate float32) {
-	if a1.Position.X != a2.Position.X || a1.Position.Y != a2.Position.Y {
+	if a1.Position.X[0] != a2.Position.X[0] || a1.Position.X[1] != a2.Position.X[1] {
 		return
 	}
 
@@ -35,7 +35,7 @@ func interationRuleDefinition(a1 *MobileAgent, a2 *MobileAgent, contribuitionPro
 }
 
 func motionRuleDefinition(environment *space.Environment, position *space.Point) space.Point {
-	neighborhood := environment.Neighborhood(position.X, position.Y)
+	neighborhood := environment.Neighborhood(position.X[0], position.X[1])
 
 	var maxPosition int = 0
 	var maxValue float32 = neighborhood[maxPosition]
@@ -54,16 +54,11 @@ func makeEnvironmentForTest() space.Environment {
 	motion := space.MakeNeighborhoodMotion(5, 2)
 	environment := space.MakeEnvironment(5, 5, &motion, .1)
 
-	motion.Motion[0][0] = +1
-	motion.Motion[0][1] = 0
-	motion.Motion[1][0] = 0
-	motion.Motion[1][1] = -1
-	motion.Motion[2][0] = -1
-	motion.Motion[2][1] = 0
-	motion.Motion[3][0] = 0
-	motion.Motion[3][1] = +1
-	motion.Motion[4][0] = 0
-	motion.Motion[4][0] = 0
+	motion.Motion[0] = space.NewPoint(+1, 0)
+	motion.Motion[1] = space.NewPoint(0, -1)
+	motion.Motion[2] = space.NewPoint(-1, 0)
+	motion.Motion[3] = space.NewPoint(0, +1)
+	motion.Motion[4] = space.NewPoint(0, 0)
 
 	environment.Cells[0][0] = 0.0030474192
 	environment.Cells[1][0] = 0.047903188
@@ -106,47 +101,38 @@ func makeEnvironmentForTest() space.Environment {
 }
 
 func TestAgentMotion(t *testing.T) {
-	expectedOneStep := space.Point{
-		X: 2,
-		Y: 1,
-	}
-	expectedInside := space.Point{
-		X: 0,
-		Y: 4,
-	}
-
+	expectedOneStep := space.NewPoint(2, 1)
+	expectedInside := space.NewPoint(0, 4)
 	environment := makeEnvironmentForTest()
+	agentPosition := space.NewPoint(1, 1)
 
 	agent := MobileAgent{
-		Position: space.Point{
-			X: 1,
-			Y: 1,
-		},
+		Position:   agentPosition,
 		MotionRule: motionRuleDefinition,
 	}
 
 	agent.Walk(&environment)
 
-	testResult := agent.Position.X == expectedOneStep.X && agent.Position.Y == expectedOneStep.Y
+	testResult := agent.Position.X[0] == expectedOneStep.X[0] && agent.Position.X[1] == expectedOneStep.X[1]
 
-	fmt.Printf("The agent expected to be on site (%d, %d).\n", expectedOneStep.X, expectedOneStep.Y)
+	fmt.Printf("The agent expected to be on site (%d, %d).\n", expectedOneStep.X[0], expectedOneStep.X[1])
 
 	if !testResult {
 		t.Fatalf("The agent moved to the wrong site! Expected site is (%d, %d), but the atual site is (%d, %d)",
-			expectedOneStep.X, expectedOneStep.Y, agent.Position.X, agent.Position.Y)
+			expectedOneStep.X[0], expectedOneStep.X[1], agent.Position.X[0], agent.Position.X[1])
 	}
 
-	agent.Position.X = 0
-	agent.Position.Y = 0
+	agent.Position.X[0] = 0
+	agent.Position.X[1] = 0
 	agent.Walk(&environment)
 
-	testResult = agent.Position.X == expectedInside.X && agent.Position.Y == expectedInside.Y
+	testResult = agent.Position.X[0] == expectedInside.X[0] && agent.Position.X[1] == expectedInside.X[1]
 
-	fmt.Printf("The agent expected to be on site (%d, %d), inside the invironment.\n", expectedInside.X, expectedInside.Y)
+	fmt.Printf("The agent expected to be on site (%d, %d), inside the invironment.\n", expectedInside.X[0], expectedInside.X[1])
 
 	if !testResult {
 		t.Fatalf("The agent moved to the wrong site! Expected site is (%d, %d), but the atual site is (%d, %d)",
-			expectedInside.X, expectedInside.Y, agent.Position.X, agent.Position.Y)
+			expectedInside.X[0], expectedInside.X[1], agent.Position.X[0], agent.Position.X[1])
 	}
 }
 
@@ -158,34 +144,22 @@ func TestAgentInteration(t *testing.T) {
 	}
 
 	a1 := MobileAgent{
-		Position: space.Point{
-			X: 1,
-			Y: 1,
-		},
+		Position:   space.NewPoint(1, 1),
 		Foodstuffs: 100,
 		MotionRule: motionRuleDefinition,
 	}
 	a1_expected := MobileAgent{
-		Position: space.Point{
-			X: 1,
-			Y: 1,
-		},
+		Position:   space.NewPoint(1, 1),
 		Foodstuffs: 100,
 		MotionRule: motionRuleDefinition,
 	}
 	a2 := MobileAgent{
-		Position: space.Point{
-			X: 0,
-			Y: 0,
-		},
+		Position:   space.NewPoint(0, 0),
 		Foodstuffs: 50,
 		MotionRule: motionRuleDefinition,
 	}
 	a2_expected := MobileAgent{
-		Position: space.Point{
-			X: 0,
-			Y: 0,
-		},
+		Position:   space.NewPoint(0, 0),
 		Foodstuffs: 50,
 		MotionRule: motionRuleDefinition,
 	}
@@ -197,8 +171,8 @@ func TestAgentInteration(t *testing.T) {
 		t.Fatalf("There was interation between two agents in diferent place")
 	}
 
-	a2.Position.X = a1.Position.X
-	a2.Position.Y = a1.Position.Y
+	a2.Position.X[0] = a1.Position.X[0]
+	a2.Position.X[1] = a1.Position.X[1]
 
 	exchange.Interation(&a1, &a2)
 

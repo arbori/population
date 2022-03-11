@@ -9,7 +9,7 @@ import (
 
 func TestAplyRuleSimulation(t *testing.T) {
 	log.Println("TestAplyRuleSimulation - Start test")
-	motion := constructNeighborhoodMotion()
+	motion := constructVonNeumannNeighborhoodMotion()
 	environment := constructEnvironment(&motion)
 
 	rule := rule.SpreadRuleVonNeumann{

@@ -4,36 +4,72 @@ import (
 	"github.com/arbori/population.git/population/rule"
 )
 
+type PointError struct {
+	msg string
+}
+
+func (pe PointError) Error() string {
+	return pe.msg
+}
+
 type Point struct {
-	X int
-	Y int
+	X   []int
+	Dim int
 }
 
-func (p *Point) Assign(point *Point) {
-	p.X = point.X
-	p.Y = point.Y
+func NewPoint(x ...int) Point {
+	result := Point{}
+
+	result.Dim = len(x)
+	result.X = make([]int, result.Dim)
+
+	for i := 0; i < result.Dim; i += 1 {
+		result.X[i] = x[i]
+	}
+
+	return result
 }
 
-func (p *Point) Add(point *Point) {
-	p.X += point.X
-	p.Y += point.Y
+func (p *Point) Assign(point *Point) error {
+	if len(p.X) != len(point.X) {
+		return PointError{msg: "The length of these two points are different."}
+	}
+
+	for i := 0; i < len(point.X); i += 1 {
+		p.X[i] = point.X[i]
+	}
+
+	return nil
+}
+
+func (p *Point) Add(point *Point) error {
+	if len(p.X) != len(point.X) {
+		return PointError{msg: "The length of these two points are different."}
+	}
+
+	for i := 0; i < len(point.X); i += 1 {
+		p.X[i] += point.X[i]
+	}
+
+	return nil
 }
 
 type NeighborhoodMotion struct {
-	Size      int
-	Dimention int
-	Motion    [][]int
+	Size   int
+	Motion []Point
 }
 
 func MakeNeighborhoodMotion(size int, dimention int) NeighborhoodMotion {
 	result := NeighborhoodMotion{
-		Size:      size,
-		Dimention: dimention,
-		Motion:    make([][]int, size),
+		Size:   size,
+		Motion: make([]Point, size),
 	}
 
 	for s := 0; s < size; s += 1 {
-		result.Motion[s] = make([]int, dimention)
+		result.Motion[s] = Point{
+			X:   make([]int, dimention),
+			Dim: dimention,
+		}
 	}
 
 	return result
@@ -69,7 +105,7 @@ func MakeEnvironment(X int, Y int, neighborhoodMotion *NeighborhoodMotion, inert
 func (e *Environment) Neighborhood(x int, y int) []float32 {
 	neighborhood := make([]float32, e.neighborhoodMotion.Size)
 
-	if len(e.neighborhoodMotion.Motion) == 0 || len(e.neighborhoodMotion.Motion) != e.neighborhoodMotion.Size || len(e.neighborhoodMotion.Motion[0]) != e.neighborhoodMotion.Dimention {
+	if len(e.neighborhoodMotion.Motion) == 0 || len(e.neighborhoodMotion.Motion) != e.neighborhoodMotion.Size {
 		return neighborhood
 	}
 
@@ -77,8 +113,8 @@ func (e *Environment) Neighborhood(x int, y int) []float32 {
 	var j int
 
 	for index := 0; index < e.neighborhoodMotion.Size; index += 1 {
-		j = e.neighborhoodMotion.Motion[index][0] + x
-		i = e.neighborhoodMotion.Motion[index][1] + y
+		j = e.neighborhoodMotion.Motion[index].X[0] + x
+		i = e.neighborhoodMotion.Motion[index].X[1] + y
 
 		if j < 0 {
 			j = e.X + j
@@ -99,21 +135,20 @@ func (e *Environment) Neighborhood(x int, y int) []float32 {
 }
 
 func (e *Environment) GetNewPosition(position *Point, directionChoosed int) Point {
-	result := Point{
-		X: e.neighborhoodMotion.Motion[directionChoosed][0] + position.X,
-		Y: e.neighborhoodMotion.Motion[directionChoosed][1] + position.Y,
+	result := NewPoint(
+		e.neighborhoodMotion.Motion[directionChoosed].X[0]+position.X[0],
+		e.neighborhoodMotion.Motion[directionChoosed].X[1]+position.X[1])
+
+	if result.X[0] < 0 {
+		result.X[0] = e.X + result.X[0]
+	} else if result.X[0] >= e.X {
+		result.X[0] = result.X[0] - e.X
 	}
 
-	if result.X < 0 {
-		result.X = e.X + result.X
-	} else if result.X >= e.X {
-		result.X = result.X - e.X
-	}
-
-	if result.Y < 0 {
-		result.Y = e.Y + result.Y
-	} else if result.Y >= e.Y {
-		result.Y = result.Y - e.Y
+	if result.X[1] < 0 {
+		result.X[1] = e.Y + result.X[1]
+	} else if result.X[1] >= e.Y {
+		result.X[1] = result.X[1] - e.Y
 	}
 
 	return result
