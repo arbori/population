@@ -60,31 +60,31 @@ func makeEnvironmentForTest() space.Environment {
 	motion.Motion[3] = space.NewPoint(0, +1)
 	motion.Motion[4] = space.NewPoint(0, 0)
 
-	environment.Cells[0][0] = 0.0030474192
-	environment.Cells[1][0] = 0.047903188
-	environment.Cells[2][0] = 0.27384293
-	environment.Cells[3][0] = 0.06288487
-	environment.Cells[4][0] = 0.006969613
-	environment.Cells[0][1] = 0.042323112
-	environment.Cells[1][1] = 0.46316734
-	environment.Cells[2][1] = 1.8816189
-	environment.Cells[3][1] = 0.5958209
-	environment.Cells[4][1] = 0.0724816
-	environment.Cells[0][2] = 0.1930319
-	environment.Cells[1][2] = 1.4092783
-	environment.Cells[2][2] = 3.0912015
-	environment.Cells[3][2] = 2.2813718
-	environment.Cells[4][2] = 0.3151865
-	environment.Cells[0][3] = 0.034155533
-	environment.Cells[1][3] = 0.28721535
-	environment.Cells[2][3] = 0.9084532
-	environment.Cells[3][3] = 0.4175537
-	environment.Cells[4][3] = 0.06292355
-	environment.Cells[0][4] = 0.103392154
-	environment.Cells[1][4] = 0.03049182
-	environment.Cells[2][4] = 0.10911071
-	environment.Cells[3][4] = 0.044589132
-	environment.Cells[4][4] = 0.0073037986
+	environment.Cells[0][0].Value = 0.0030474192
+	environment.Cells[1][0].Value = 0.047903188
+	environment.Cells[2][0].Value = 0.27384293
+	environment.Cells[3][0].Value = 0.06288487
+	environment.Cells[4][0].Value = 0.006969613
+	environment.Cells[0][1].Value = 0.042323112
+	environment.Cells[1][1].Value = 0.46316734
+	environment.Cells[2][1].Value = 1.8816189
+	environment.Cells[3][1].Value = 0.5958209
+	environment.Cells[4][1].Value = 0.0724816
+	environment.Cells[0][2].Value = 0.1930319
+	environment.Cells[1][2].Value = 1.4092783
+	environment.Cells[2][2].Value = 3.0912015
+	environment.Cells[3][2].Value = 2.2813718
+	environment.Cells[4][2].Value = 0.3151865
+	environment.Cells[0][3].Value = 0.034155533
+	environment.Cells[1][3].Value = 0.28721535
+	environment.Cells[2][3].Value = 0.9084532
+	environment.Cells[3][3].Value = 0.4175537
+	environment.Cells[4][3].Value = 0.06292355
+	environment.Cells[0][4].Value = 0.103392154
+	environment.Cells[1][4].Value = 0.03049182
+	environment.Cells[2][4].Value = 0.10911071
+	environment.Cells[3][4].Value = 0.044589132
+	environment.Cells[4][4].Value = 0.0073037986
 
 	for y := 0; y < environment.Y; y += 1 {
 		for x := 0; x < environment.X; x += 1 {
