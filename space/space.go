@@ -75,11 +75,16 @@ func MakeNeighborhoodMotion(size int, dimention int) NeighborhoodMotion {
 	return result
 }
 
+type Cell struct {
+	Value   float32
+	Content interface{}
+}
+
 type Environment struct {
 	X                  int
 	Y                  int
-	Cells              [][]float32
-	mirror             [][]float32
+	Cells              [][]Cell
+	mirror             [][]Cell
 	neighborhoodMotion NeighborhoodMotion
 	Inertia            float32
 }
@@ -88,15 +93,20 @@ func MakeEnvironment(X int, Y int, neighborhoodMotion *NeighborhoodMotion, inert
 	environment := Environment{
 		X:                  X,
 		Y:                  Y,
-		Cells:              make([][]float32, X),
-		mirror:             make([][]float32, X),
+		Cells:              make([][]Cell, X),
+		mirror:             make([][]Cell, X),
 		neighborhoodMotion: *neighborhoodMotion,
 		Inertia:            inertia,
 	}
 
 	for x := 0; x < environment.X; x += 1 {
-		environment.Cells[x] = make([]float32, Y)
-		environment.mirror[x] = make([]float32, Y)
+		environment.Cells[x] = make([]Cell, Y)
+		environment.mirror[x] = make([]Cell, Y)
+
+		for y := 0; y < environment.Y; y += 1 {
+			environment.Cells[x][y] = Cell{Value: 0.0, Content: nil}
+			environment.mirror[x][y] = Cell{Value: 0.0, Content: nil}
+		}
 	}
 
 	return environment
@@ -128,7 +138,7 @@ func (e *Environment) Neighborhood(x int, y int) []float32 {
 			i = i - e.Y
 		}
 
-		neighborhood[index] = e.Cells[j][i]
+		neighborhood[index] = e.Cells[j][i].Value
 	}
 
 	return neighborhood
@@ -157,7 +167,7 @@ func (e *Environment) GetNewPosition(position *Point, directionChoosed int) Poin
 func (e *Environment) ApplyRule(r rule.Rule) {
 	for y := 0; y < e.Y; y += 1 {
 		for x := 0; x < e.X; x += 1 {
-			e.mirror[x][y] = r.Transition(e.Neighborhood(x, y))
+			e.mirror[x][y].Value = r.Transition(e.Neighborhood(x, y))
 		}
 	}
 

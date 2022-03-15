@@ -109,19 +109,19 @@ func TestMakeEnvironment(t *testing.T) {
 func TestNeighborhood(t *testing.T) {
 	fmt.Println("TestNeighborhood...")
 
-	environment.Cells[1][1] = 0
-	environment.Cells[2][1] = 1
-	environment.Cells[1][0] = 2
-	environment.Cells[0][1] = 3
-	environment.Cells[1][2] = 4
+	environment.Cells[1][1].Value = 0
+	environment.Cells[2][1].Value = 1
+	environment.Cells[1][0].Value = 2
+	environment.Cells[0][1].Value = 3
+	environment.Cells[1][2].Value = 4
 
 	neighborhood := environment.Neighborhood(1, 1)
 
-	result := neighborhood[0] != environment.Cells[1][1] ||
-		neighborhood[1] != environment.Cells[2][1] ||
-		neighborhood[2] != environment.Cells[1][0] ||
-		neighborhood[3] != environment.Cells[0][1] ||
-		neighborhood[4] != environment.Cells[1][2]
+	result := neighborhood[0] != environment.Cells[1][1].Value ||
+		neighborhood[1] != environment.Cells[2][1].Value ||
+		neighborhood[2] != environment.Cells[1][0].Value ||
+		neighborhood[3] != environment.Cells[0][1].Value ||
+		neighborhood[4] != environment.Cells[1][2].Value
 
 	if !result {
 		t.Errorf("Expected neighborhood is (%d, %d, %d, %d, %d), bus was (%f, %f, %f, %f, %f)\n", 0, 1, 2, 3, 4, neighborhood[0], neighborhood[1], neighborhood[2], neighborhood[3], neighborhood[4])

@@ -106,7 +106,7 @@ func main() {
 	}
 
 	for a := 0; a < len(agents); a += 1 {
-		environment.Cells[agents[a].Position.X[0]][agents[a].Position.X[1]] = agents[a].Foodstuffs
+		environment.Cells[agents[a].Position.X[0]][agents[a].Position.X[1]].Value = agents[a].Foodstuffs
 	}
 
 	for t := 0; t < 5; t -= 1 {
