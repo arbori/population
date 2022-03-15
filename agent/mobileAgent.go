@@ -33,7 +33,15 @@ type MobileAgent struct {
 }
 
 func (a *MobileAgent) Walk(env *space.Environment) {
-	velocity := a.MotionRule(env, &a.Position)
+	position := a.MotionRule(env, &a.Position)
 
-	a.Position.Assign(&velocity)
+	if env.Cells[position.X[0]][position.X[1]].Content == nil {
+		env.Cells[a.Position.X[0]][a.Position.X[1]].Content = nil
+		env.Cells[position.X[0]][position.X[1]].Content = a
+
+		a.Position.Assign(&position)
+		a.Foodstuffs *= (1 - env.Inertia)
+	}
+
+	env.Cells[a.Position.X[0]][a.Position.X[1]].Value = a.Foodstuffs
 }

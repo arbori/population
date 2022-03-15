@@ -173,7 +173,7 @@ func (e *Environment) ApplyRule(r rule.Rule) {
 
 	for y := 0; y < e.Y; y += 1 {
 		for x := 0; x < e.X; x += 1 {
-			e.Cells[x][y] = e.mirror[x][y]
+			e.Cells[x][y].Value = e.mirror[x][y].Value
 		}
 	}
 }

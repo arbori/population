@@ -93,27 +93,34 @@ func main() {
 		Decay: 1.0,
 	}
 
-	agents := make([]agent.MobileAgent, 2)
-	agents[0] = agent.MobileAgent{
+	agents := make([]*agent.MobileAgent, 2)
+	agents[0] = &agent.MobileAgent{
 		Position:   space.NewPoint(1, 1),
 		Foodstuffs: 7.0,
 		MotionRule: motionRuleDefinition,
 	}
-	agents[1] = agent.MobileAgent{
+	agents[1] = &agent.MobileAgent{
 		Position:   space.NewPoint(3, 3),
 		Foodstuffs: 5.0,
 		MotionRule: motionRuleDefinition,
 	}
 
+	dead := make([]*agent.MobileAgent, 2, 2)
+
 	for a := 0; a < len(agents); a += 1 {
+		environment.Cells[agents[a].Position.X[0]][agents[a].Position.X[1]].Content = agents[a]
 		environment.Cells[agents[a].Position.X[0]][agents[a].Position.X[1]].Value = agents[a].Foodstuffs
 	}
 
-	for t := 0; t < 5; t -= 1 {
+	for t := 0; len(agents) > 0; t += 1 {
+		fmt.Printf("%d\n", t)
 		for y := 0; y < environment.Y; y += 1 {
 			for x := 0; x < environment.X; x += 1 {
-				fmt.Printf("%.2f", environment.Cells[x][y])
-				fmt.Print("\t")
+				if environment.Cells[x][y].Content != nil && environment.Cells[x][y].Content.(*agent.MobileAgent).Foodstuffs > .01 {
+					fmt.Printf("x\t")
+				} else {
+					fmt.Printf("_\t")
+				}
 			}
 
 			fmt.Print("\n")
@@ -124,14 +131,17 @@ func main() {
 		environment.ApplyRule(spreadRule)
 		for a := 0; a < len(agents); a += 1 {
 			agents[a].Walk(&environment)
-			//agents[a].Foodstuffs *= (1 - environment.Inertia)
-			environment.Cells[agents[a].Position.X[0]][agents[a].Position.X[1]] = agents[a].Foodstuffs
+
+			if agents[a].Foodstuffs <= .01 {
+				dead = append(dead, agents[a])
+				agents = append(agents[:a], agents[a+1:]...)
+			}
 		}
 	}
 
 	for y := 0; y < environment.Y; y += 1 {
 		for x := 0; x < environment.X; x += 1 {
-			fmt.Printf("%.2f", environment.Cells[x][y])
+			fmt.Printf("%.2f", environment.Cells[x][y].Value)
 			fmt.Print("\t")
 		}
 
