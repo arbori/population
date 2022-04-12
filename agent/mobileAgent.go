@@ -1,6 +1,8 @@
 package agent
 
 import (
+	"math/rand"
+
 	"github.com/arbori/population.git/population/space"
 )
 
@@ -24,12 +26,77 @@ func (e *Exchange) Interation(a1 *MobileAgent, a2 *MobileAgent) {
 	e.interationRule(a1, a2, e.ContribuitionProbability, e.ExchangeRate)
 }
 
+// Retrieve the set of agents in the neighborhood of a cell.
+func retriveAgentsInTheNeighborhood(e *space.Environment, x int, y int) []MobileAgent {
+	result := make([]MobileAgent, 0, e.Motion.Size)
+
+	if len(e.Motion.Directions) == 0 || len(e.Motion.Directions) != e.Motion.Size {
+		return result
+	}
+
+	var i int
+	var j int
+
+	for index := 0; index < e.Motion.Size; index += 1 {
+		j = e.Motion.Directions[index].X[0] + x
+		i = e.Motion.Directions[index].X[1] + y
+
+		if j < 0 {
+			j = e.X + j
+		} else if j >= e.X {
+			j = j - e.X
+		}
+
+		if i < 0 {
+			i = e.Y + i
+		} else if i >= e.Y {
+			i = i - e.Y
+		}
+
+		if e.Cells[j][i].Content != nil && e.Cells[j][i].Content.(MobileAgent).IsAvailable {
+			result = append(result, e.Cells[j][i].Content.(MobileAgent))
+		}
+	}
+
+	return result
+}
+
+// Identify gents's position in the environment to do exchange between them.
+// Each 2 agents in the same neighborhood, can be choose to exchange resources.
+func AgentsExchangeResources(e *space.Environment, exc *Exchange, interationRule InterationRuleType) {
+	var firsti int
+	var secoundi int
+
+	for y := 0; y < e.Y; y += 1 {
+		for x := 0; x < e.X; x += 1 {
+			agentsInTheNeighborhood := retriveAgentsInTheNeighborhood(e, x, y)
+
+			for len(agentsInTheNeighborhood) > 1 {
+				firsti = rand.Intn(len(agentsInTheNeighborhood))
+
+				for secoundi = firsti; secoundi == firsti; secoundi = rand.Intn(len(agentsInTheNeighborhood)) {
+				}
+
+				interationRule(&agentsInTheNeighborhood[firsti], &agentsInTheNeighborhood[secoundi], exc.ContribuitionProbability, exc.ExchangeRate)
+
+				agentsInTheNeighborhood[firsti].IsAvailable = false
+				agentsInTheNeighborhood[secoundi].IsAvailable = false
+				
+				agentsInTheNeighborhood = append(agentsInTheNeighborhood[:firsti], agentsInTheNeighborhood[firsti+1:]...)
+				agentsInTheNeighborhood = append(agentsInTheNeighborhood[:secoundi], agentsInTheNeighborhood[secoundi+1:]...)
+			}
+		}
+	}
+}
+
 type MotionRuleType func(environment *space.Environment, position *space.Point) space.Point
 
 type MobileAgent struct {
-	Position   space.Point
-	Foodstuffs float32
-	MotionRule MotionRuleType
+	Position    space.Point
+	Foodstuffs  float32
+	MotionRule  MotionRuleType
+	x           []int
+	IsAvailable bool
 }
 
 func (a *MobileAgent) Walk(env *space.Environment) {
@@ -40,7 +107,6 @@ func (a *MobileAgent) Walk(env *space.Environment) {
 		env.Cells[position.X[0]][position.X[1]].Content = a
 
 		a.Position.Assign(&position)
-		a.Foodstuffs *= (1 - env.Inertia)
 	}
 
 	env.Cells[a.Position.X[0]][a.Position.X[1]].Value = a.Foodstuffs

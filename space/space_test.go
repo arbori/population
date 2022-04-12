@@ -18,11 +18,11 @@ func TestSetup(t *testing.T) {
 	dimention = 2
 
 	neighborhoodMotion = MakeNeighborhoodMotion(size, dimention)
-	neighborhoodMotion.Motion[0] = NewPoint(1, 0)
-	neighborhoodMotion.Motion[1] = NewPoint(0, -1)
-	neighborhoodMotion.Motion[2] = NewPoint(-1, 0)
-	neighborhoodMotion.Motion[3] = NewPoint(0, +1)
-	neighborhoodMotion.Motion[4] = NewPoint(0, 0)
+	neighborhoodMotion.Directions[0] = NewPoint(1, 0)
+	neighborhoodMotion.Directions[1] = NewPoint(0, -1)
+	neighborhoodMotion.Directions[2] = NewPoint(-1, 0)
+	neighborhoodMotion.Directions[3] = NewPoint(0, +1)
+	neighborhoodMotion.Directions[4] = NewPoint(0, 0)
 
 	XEnvironment = 15
 	YEnvironment = 17
@@ -74,13 +74,13 @@ func TestNeighborhoodMotionCreation(t *testing.T) {
 	}
 
 	fmt.Printf("neighborhoodMotion.Dimention supose to be %d\n", size)
-	if neighborhoodMotion.Motion[0].Dim != dimention {
-		t.Errorf("neighborhoodMotion.Dimention actual value: %d\n", neighborhoodMotion.Motion[0].Dim)
+	if neighborhoodMotion.Directions[0].Dim != dimention {
+		t.Errorf("neighborhoodMotion.Dimention actual value: %d\n", neighborhoodMotion.Directions[0].Dim)
 	}
 
 	fmt.Printf("neighborhoodMotion.Motion must folow length Size and Dimention\n")
-	if len(neighborhoodMotion.Motion) != size || neighborhoodMotion.Motion[0].Dim != dimention {
-		t.Errorf("neighborhoodMotion.Motion have size and dimention, respectively %d and %d\n", len(neighborhoodMotion.Motion), neighborhoodMotion.Motion[0].Dim)
+	if len(neighborhoodMotion.Directions) != size || neighborhoodMotion.Directions[0].Dim != dimention {
+		t.Errorf("neighborhoodMotion.Motion have size and dimention, respectively %d and %d\n", len(neighborhoodMotion.Directions), neighborhoodMotion.Directions[0].Dim)
 	}
 }
 
@@ -115,7 +115,7 @@ func TestNeighborhood(t *testing.T) {
 	environment.Cells[0][1].Value = 3
 	environment.Cells[1][2].Value = 4
 
-	neighborhood := environment.Neighborhood(1, 1)
+	neighborhood := environment.NeighborhoodValues(1, 1)
 
 	result := neighborhood[0] != environment.Cells[1][1].Value ||
 		neighborhood[1] != environment.Cells[2][1].Value ||

@@ -9,7 +9,7 @@ import (
 )
 
 func interationRuleDefinition(a1 *MobileAgent, a2 *MobileAgent, contribuitionProbability float32, exchangeRate float32) {
-	if a1.Position.X[0] != a2.Position.X[0] || a1.Position.X[1] != a2.Position.X[1] {
+	if a1.Position.X[0] != a2.Position.X[0] && a1.Position.X[1] != a2.Position.X[1] {
 		return
 	}
 
@@ -35,7 +35,7 @@ func interationRuleDefinition(a1 *MobileAgent, a2 *MobileAgent, contribuitionPro
 }
 
 func motionRuleDefinition(environment *space.Environment, position *space.Point) space.Point {
-	neighborhood := environment.Neighborhood(position.X[0], position.X[1])
+	neighborhood := environment.NeighborhoodValues(position.X[0], position.X[1])
 
 	var maxPosition int = 0
 	var maxValue float32 = neighborhood[maxPosition]
@@ -54,11 +54,11 @@ func makeEnvironmentForTest() space.Environment {
 	motion := space.MakeNeighborhoodMotion(5, 2)
 	environment := space.MakeEnvironment(5, 5, &motion, .1)
 
-	motion.Motion[0] = space.NewPoint(+1, 0)
-	motion.Motion[1] = space.NewPoint(0, -1)
-	motion.Motion[2] = space.NewPoint(-1, 0)
-	motion.Motion[3] = space.NewPoint(0, +1)
-	motion.Motion[4] = space.NewPoint(0, 0)
+	motion.Directions[0] = space.NewPoint(+1, 0)
+	motion.Directions[1] = space.NewPoint(0, -1)
+	motion.Directions[2] = space.NewPoint(-1, 0)
+	motion.Directions[3] = space.NewPoint(0, +1)
+	motion.Directions[4] = space.NewPoint(0, 0)
 
 	environment.Cells[0][0].Value = 0.0030474192
 	environment.Cells[1][0].Value = 0.047903188
@@ -107,8 +107,9 @@ func TestAgentMotion(t *testing.T) {
 	agentPosition := space.NewPoint(1, 1)
 
 	agent := MobileAgent{
-		Position:   agentPosition,
-		MotionRule: motionRuleDefinition,
+		Position:    agentPosition,
+		MotionRule:  motionRuleDefinition,
+		IsAvailable: true,
 	}
 
 	agent.Walk(&environment)
@@ -144,24 +145,28 @@ func TestAgentInteration(t *testing.T) {
 	}
 
 	a1 := MobileAgent{
-		Position:   space.NewPoint(1, 1),
-		Foodstuffs: 100,
-		MotionRule: motionRuleDefinition,
+		Position:    space.NewPoint(1, 1),
+		Foodstuffs:  100,
+		MotionRule:  motionRuleDefinition,
+		IsAvailable: true,
 	}
 	a1_expected := MobileAgent{
-		Position:   space.NewPoint(1, 1),
-		Foodstuffs: 100,
-		MotionRule: motionRuleDefinition,
+		Position:    space.NewPoint(1, 1),
+		Foodstuffs:  100,
+		MotionRule:  motionRuleDefinition,
+		IsAvailable: true,
 	}
 	a2 := MobileAgent{
-		Position:   space.NewPoint(0, 0),
-		Foodstuffs: 50,
-		MotionRule: motionRuleDefinition,
+		Position:    space.NewPoint(0, 0),
+		Foodstuffs:  50,
+		MotionRule:  motionRuleDefinition,
+		IsAvailable: true,
 	}
 	a2_expected := MobileAgent{
-		Position:   space.NewPoint(0, 0),
-		Foodstuffs: 50,
-		MotionRule: motionRuleDefinition,
+		Position:    space.NewPoint(0, 0),
+		Foodstuffs:  50,
+		MotionRule:  motionRuleDefinition,
+		IsAvailable: true,
 	}
 
 	exchange.Interation(&a1, &a2)
@@ -184,5 +189,101 @@ func TestAgentInteration(t *testing.T) {
 	fmt.Printf("It is supose afeter interation between two agents, its foodstuffs amount has been change.\n")
 	if a2.Foodstuffs == (a1.Foodstuffs+a1_expected.Foodstuffs)/exchange.ExchangeRate || a1.Foodstuffs == (a2.Foodstuffs+a2_expected.Foodstuffs)/exchange.ExchangeRate {
 		t.Fatalf("Exchange Foodstuffs between two agents in the same site is ")
+	}
+}
+
+func TestRetriveAgentsInTheNeighborhood(t *testing.T) {
+	neighborhoodMotion := space.MakeNeighborhoodMotion(5, 2)
+	neighborhoodMotion.Directions[0].X[0] = 0
+	neighborhoodMotion.Directions[0].X[1] = 0
+	neighborhoodMotion.Directions[1].X[0] = -1
+	neighborhoodMotion.Directions[1].X[1] = 0
+	neighborhoodMotion.Directions[2].X[0] = 0
+	neighborhoodMotion.Directions[2].X[1] = 1
+	neighborhoodMotion.Directions[3].X[0] = 1
+	neighborhoodMotion.Directions[3].X[1] = 0
+	neighborhoodMotion.Directions[4].X[0] = 0
+	neighborhoodMotion.Directions[4].X[1] = -1
+
+	a1 := MobileAgent{
+		Position:    space.NewPoint(1, 1),
+		Foodstuffs:  100,
+		MotionRule:  motionRuleDefinition,
+		IsAvailable: true,
+	}
+	a2 := MobileAgent{
+		Position:    space.NewPoint(0, 1),
+		Foodstuffs:  50,
+		MotionRule:  motionRuleDefinition,
+		IsAvailable: true,
+	}
+
+	env := space.MakeEnvironment(5, 5, &neighborhoodMotion, .1)
+	env.Cells[a1.Position.X[0]][a1.Position.X[1]].Content = a1
+	env.Cells[a2.Position.X[0]][a2.Position.X[1]].Content = a2
+	env.Motion = neighborhoodMotion
+
+	neighborhoodAgents := retriveAgentsInTheNeighborhood(&env, 1, 1)
+
+	fmt.Printf("It is supose there are 2 agents in the neighborhood.\n")
+	if len(neighborhoodAgents) != 2 {
+		t.Fatalf("There are not only two agents in the neighborhood.")
+	}
+}
+
+func TestAgentsExchangeResources(t *testing.T) {
+	exchange := Exchange{
+		ContribuitionProbability: .5,
+		ExchangeRate:             .25,
+		interationRule:           interationRuleDefinition,
+	}
+
+	neighborhoodMotion := space.MakeNeighborhoodMotion(5, 2)
+	neighborhoodMotion.Directions[0].X[0] = 0
+	neighborhoodMotion.Directions[0].X[1] = 0
+	neighborhoodMotion.Directions[1].X[0] = -1
+	neighborhoodMotion.Directions[1].X[1] = 0
+	neighborhoodMotion.Directions[2].X[0] = 0
+	neighborhoodMotion.Directions[2].X[1] = 1
+	neighborhoodMotion.Directions[3].X[0] = 1
+	neighborhoodMotion.Directions[3].X[1] = 0
+	neighborhoodMotion.Directions[4].X[0] = 0
+	neighborhoodMotion.Directions[4].X[1] = -1
+
+	a1 := MobileAgent{
+		Position:    space.NewPoint(1, 1),
+		Foodstuffs:  100,
+		MotionRule:  motionRuleDefinition,
+		IsAvailable: true,
+	}
+	a1_expected := MobileAgent{
+		Position:    space.NewPoint(1, 1),
+		Foodstuffs:  100,
+		MotionRule:  motionRuleDefinition,
+		IsAvailable: true,
+	}
+	a2 := MobileAgent{
+		Position:    space.NewPoint(0, 1),
+		Foodstuffs:  50,
+		MotionRule:  motionRuleDefinition,
+		IsAvailable: true,
+	}
+	a2_expected := MobileAgent{
+		Position:    space.NewPoint(0, 1),
+		Foodstuffs:  50,
+		MotionRule:  motionRuleDefinition,
+		IsAvailable: true,
+	}
+
+	env := space.MakeEnvironment(5, 5, &neighborhoodMotion, .1)
+	env.Cells[a1.Position.X[0]][a1.Position.X[1]].Content = a1
+	env.Cells[a2.Position.X[0]][a2.Position.X[1]].Content = a2
+	env.Motion = neighborhoodMotion
+
+	AgentsExchangeResources(&env, &exchange, interationRuleDefinition)
+
+	fmt.Printf("It is supose there is not interation between two agents in diferent place.\n")
+	if a1.Foodstuffs != a1_expected.Foodstuffs || a2.Foodstuffs != a2_expected.Foodstuffs {
+		t.Fatalf("There was interation between two agents in diferent place")
 	}
 }

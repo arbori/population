@@ -5,34 +5,38 @@ import (
 	"testing"
 
 	"github.com/arbori/population.git/population/rule"
+	"github.com/arbori/population.git/population/space"
 )
 
 func TestAplyRuleSimulation(t *testing.T) {
 	log.Println("TestAplyRuleSimulation - Start test")
-	motion := constructVonNeumannNeighborhoodMotion()
+	motion := vonNeumannNeighborhoodMotion
 	environment := constructEnvironment(&motion)
 
-	rule := rule.SpreadRuleVonNeumann{
-		Decay: .15,
+	rule := rule.AverageRuleVonNeumann{
+	}
+
+	average := func(environment *space.Environment, x int, y int) float32 {
+		return (environment.Cells[x][y].Value + environment.Cells[x-1][y].Value + environment.Cells[x][y+1].Value+ environment.Cells[x+1][y].Value + environment.Cells[x][y-1].Value) / 5
 	}
 
 	x := 2
 	y := 2
 	environment.Cells[x][y].Value = 7
 
-	center := (1-rule.Decay)*environment.Cells[x][y].Value + (rule.Decay/5.0)*(environment.Cells[x-1][y].Value+environment.Cells[x][y+1].Value+environment.Cells[x+1][y].Value+environment.Cells[x][y-1].Value)
+	center := average(&environment, x, y)
 	x = 1
 	y = 2
-	left := (1-rule.Decay)*environment.Cells[x][y].Value + (rule.Decay/5.0)*(environment.Cells[x-1][y].Value+environment.Cells[x][y+1].Value+environment.Cells[x+1][y].Value+environment.Cells[x][y-1].Value)
+	left := average(&environment, x, y)
 	x = 2
 	y = 3
-	button := (1-rule.Decay)*environment.Cells[x][y].Value + (rule.Decay/5.0)*(environment.Cells[x-1][y].Value+environment.Cells[x][y+1].Value+environment.Cells[x+1][y].Value+environment.Cells[x][y-1].Value)
+	button := average(&environment, x, y)
 	x = 3
 	y = 2
-	right := (1-rule.Decay)*environment.Cells[x][y].Value + (rule.Decay/5.0)*(environment.Cells[x-1][y].Value+environment.Cells[x][y+1].Value+environment.Cells[x+1][y].Value+environment.Cells[x][y-1].Value)
+	right := average(&environment, x, y)
 	x = 2
 	y = 1
-	top := (1-rule.Decay)*environment.Cells[x][y].Value + (rule.Decay/5.0)*(environment.Cells[x-1][y].Value+environment.Cells[x][y+1].Value+environment.Cells[x+1][y].Value+environment.Cells[x][y-1].Value)
+	top := average(&environment, x, y)
 
 	environment.ApplyRule(rule)
 

@@ -36,7 +36,7 @@ func interationRuleDefinition(a1 *agent.MobileAgent, a2 *agent.MobileAgent, cont
 }
 
 func motionRuleDefinition(environment *space.Environment, position *space.Point) space.Point {
-	neighborhood := environment.Neighborhood(position.X[0], position.X[1])
+	neighborhood := environment.NeighborhoodValues(position.X[0], position.X[1])
 
 	var maxPosition int = 0
 	var maxValue float32 = neighborhood[maxPosition]
@@ -51,30 +51,29 @@ func motionRuleDefinition(environment *space.Environment, position *space.Point)
 	return environment.GetNewPosition(position, maxPosition)
 }
 
-func constructVonNeumannNeighborhoodMotion() space.NeighborhoodMotion {
-	motion := space.MakeNeighborhoodMotion(5, 2)
-
-	motion.Motion[0] = space.NewPoint(0, 0)
-	motion.Motion[1] = space.NewPoint(-1, 0)
-	motion.Motion[2] = space.NewPoint(0, 1)
-	motion.Motion[3] = space.NewPoint(1, 0)
-	motion.Motion[4] = space.NewPoint(0, -1)
-
-	return motion
+var vonNeumannNeighborhoodMotion = space.NeighborhoodMotion{
+	Size: 5,
+	Directions: []space.Point{
+		space.NewPoint(0, 0),
+		space.NewPoint(-1, 0),
+		space.NewPoint(0, 1),
+		space.NewPoint(1, 0),
+		space.NewPoint(0, -1),
+	},
 }
 
 func constructMooreNeighborhoodMotion() space.NeighborhoodMotion {
 	motion := space.MakeNeighborhoodMotion(9, 2)
 
-	motion.Motion[0] = space.NewPoint(0, 0)
-	motion.Motion[1] = space.NewPoint(-1, 0)
-	motion.Motion[2] = space.NewPoint(-1, 1)
-	motion.Motion[3] = space.NewPoint(0, 1)
-	motion.Motion[4] = space.NewPoint(1, 1)
-	motion.Motion[5] = space.NewPoint(1, 0)
-	motion.Motion[6] = space.NewPoint(1, -1)
-	motion.Motion[7] = space.NewPoint(0, -1)
-	motion.Motion[8] = space.NewPoint(-1, -1)
+	motion.Directions[0] = space.NewPoint(0, 0)
+	motion.Directions[1] = space.NewPoint(-1, 0)
+	motion.Directions[2] = space.NewPoint(-1, 1)
+	motion.Directions[3] = space.NewPoint(0, 1)
+	motion.Directions[4] = space.NewPoint(1, 1)
+	motion.Directions[5] = space.NewPoint(1, 0)
+	motion.Directions[6] = space.NewPoint(1, -1)
+	motion.Directions[7] = space.NewPoint(0, -1)
+	motion.Directions[8] = space.NewPoint(-1, -1)
 
 	return motion
 }
@@ -85,27 +84,53 @@ func constructEnvironment(motion *space.NeighborhoodMotion) space.Environment {
 	return environment
 }
 
+func exchangeBetweenAgents(agents []agent.MobileAgent, env *space.Environment) {
+
+}
+
+func showAgentsInEnvironment(environment space.Environment) {
+	for y := 0; y < environment.Y; y += 1 {
+		for x := 0; x < environment.X; x += 1 {
+			if environment.Cells[x][y].Content != nil && environment.Cells[x][y].Content.(*agent.MobileAgent).Foodstuffs > .01 {
+				fmt.Printf("%.2f\t", environment.Cells[x][y].Content.(*agent.MobileAgent).Foodstuffs) //"x\t")
+			} else {
+				fmt.Printf("_\t")
+			}
+		}
+
+		fmt.Print("\n")
+	}
+}
+
 func main() {
-	motion := constructVonNeumannNeighborhoodMotion()
+	motion := vonNeumannNeighborhoodMotion
 	environment := constructEnvironment(&motion)
 
-	spreadRule := rule.SpreadRuleVonNeumann{
-		Decay: 1.0,
-	}
+	spreadRule := rule.AverageRuleVonNeumann{}
 
-	agents := make([]*agent.MobileAgent, 2)
+	size := 3
+
+	agents := make([]*agent.MobileAgent, size, size)
 	agents[0] = &agent.MobileAgent{
-		Position:   space.NewPoint(1, 1),
-		Foodstuffs: 7.0,
-		MotionRule: motionRuleDefinition,
+		IsAvailable: true,
+		Position:    space.NewPoint(1, 1),
+		Foodstuffs:  7.0,
+		MotionRule:  motionRuleDefinition,
 	}
 	agents[1] = &agent.MobileAgent{
-		Position:   space.NewPoint(3, 3),
-		Foodstuffs: 5.0,
-		MotionRule: motionRuleDefinition,
+		IsAvailable: true,
+		Position:    space.NewPoint(3, 3),
+		Foodstuffs:  5.0,
+		MotionRule:  motionRuleDefinition,
+	}
+	agents[2] = &agent.MobileAgent{
+		IsAvailable: true,
+		Position:    space.NewPoint(0, 4),
+		Foodstuffs:  6.0,
+		MotionRule:  motionRuleDefinition,
 	}
 
-	dead := make([]*agent.MobileAgent, 2, 2)
+	dead := make([]*agent.MobileAgent, size, size)
 
 	for a := 0; a < len(agents); a += 1 {
 		environment.Cells[agents[a].Position.X[0]][agents[a].Position.X[1]].Content = agents[a]
@@ -114,23 +139,14 @@ func main() {
 
 	for t := 0; len(agents) > 0; t += 1 {
 		fmt.Printf("%d\n", t)
-		for y := 0; y < environment.Y; y += 1 {
-			for x := 0; x < environment.X; x += 1 {
-				if environment.Cells[x][y].Content != nil && environment.Cells[x][y].Content.(*agent.MobileAgent).Foodstuffs > .01 {
-					fmt.Printf("x\t")
-				} else {
-					fmt.Printf("_\t")
-				}
-			}
-
-			fmt.Print("\n")
-		}
-
+		showAgentsInEnvironment(environment)
 		fmt.Print("\n\n")
 
 		environment.ApplyRule(spreadRule)
 		for a := 0; a < len(agents); a += 1 {
 			agents[a].Walk(&environment)
+
+			agents[a].Foodstuffs *= (1 - environment.Inertia)
 
 			if agents[a].Foodstuffs <= .01 {
 				dead = append(dead, agents[a])
