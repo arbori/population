@@ -2,15 +2,17 @@ package lattice
 
 import (
 	"errors"
+	"fmt"
 )
 
 type Lattice struct {
 	Dimention int
+	Limits    []int
 	lines     []interface{}
 }
 
 func New(dim ...int) (Lattice, error) {
-	if len(dim) < 1 {
+	if len(dim) <= 0 {
 		return Lattice{}, errors.New("Wrong dimention")
 	}
 
@@ -18,6 +20,7 @@ func New(dim ...int) (Lattice, error) {
 
 	result := Lattice{
 		Dimention: dimention,
+		Limits:    dim,
 		lines:     makeLine(dim...),
 	}
 
@@ -25,12 +28,26 @@ func New(dim ...int) (Lattice, error) {
 }
 
 func (l Lattice) At(x ...int) float32 {
-	return getCellValue(x, l.lines)
+	if len(x) != l.Dimention {
+		panic(fmt.Sprintf("Dimention out of bounds: The X's dimention %d is diferent than lattice's dimention %d.", len(x), l.Dimention))
+	}
+
+	line := get(x, l.lines)
+
+	return (*line)[0].(float32)
 }
 
 func (l Lattice) Set(value float32, x ...int) {
-	setCellValue(value, x, l.lines)
+	if len(x) != l.Dimention {
+		panic(fmt.Sprintf("Dimention out of bounds: The X's dimention %d is diferent than lattice's dimention %d.", len(x), l.Dimention))
+	}
+
+	line := get(x, l.lines)
+
+	(*line)[0] = value
 }
+
+var defaultCellValue float32 = 0
 
 func makeLine(dim ...int) []interface{} {
 	var rows []interface{} = make([]interface{}, dim[0])
@@ -42,10 +59,9 @@ func makeLine(dim ...int) []interface{} {
 	return rows
 }
 
-var defaultCellValue float32 = 0
-
 func fillLine(cell *interface{}, dim []int) {
 	if len(dim) < 1 {
+		(*cell) = defaultCellValue
 		return
 	}
 
@@ -58,27 +74,20 @@ func fillLine(cell *interface{}, dim []int) {
 			(*cell).([]interface{})[i] = defaultCellValue
 		}
 	} else {
-		dim = dim[1:]
-
 		for i := 0; i < size; i += 1 {
-			fillLine(&(*cell).([]interface{})[i], dim)
+			fillLine(&(*cell).([]interface{})[i], dim[1:])
 		}
 	}
 }
 
-func getCellValue(x []int, row []interface{}) float32 {
-	if len(x) == 1 {
-		return row[x[0]].(float32)
+func get(x []int, row []interface{}) *[]interface{} {
+	if x[0] < 0 || x[0] >= len(row) {
+		panic(fmt.Sprintf("Index out of bounds: %d is out of [0, %d).", x[0], len(row)))
 	}
 
-	return getCellValue(x[1:], row[x[0]].([]interface{}))
-}
-
-func setCellValue(value float32, x []int, row []interface{}) {
 	if len(x) == 1 {
-		row[x[0]] = value
-		return
+		return &row
 	}
 
-	setCellValue(value, x[1:], row[x[0]].([]interface{}))
+	return get(x[1:], row[x[0]].([]interface{}))
 }
