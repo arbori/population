@@ -34,7 +34,7 @@ func (l Lattice) At(x ...int) float32 {
 
 	line := get(x, l.lines)
 
-	return (*line)[0].(float32)
+	return (*line).(float32)
 }
 
 func (l Lattice) Set(value float32, x ...int) {
@@ -44,7 +44,7 @@ func (l Lattice) Set(value float32, x ...int) {
 
 	line := get(x, l.lines)
 
-	(*line)[0] = value
+	(*line) = value
 }
 
 var defaultCellValue float32 = 0
@@ -80,13 +80,13 @@ func fillLine(cell *interface{}, dim []int) {
 	}
 }
 
-func get(x []int, row []interface{}) *[]interface{} {
+func get(x []int, row []interface{}) *interface{} {
 	if x[0] < 0 || x[0] >= len(row) {
 		panic(fmt.Sprintf("Index out of bounds: %d is out of [0, %d).", x[0], len(row)))
 	}
 
 	if len(x) == 1 {
-		return &row
+		return &row[x[0]]
 	}
 
 	return get(x[1:], row[x[0]].([]interface{}))

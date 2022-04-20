@@ -1,14 +1,12 @@
 package rule
 
 import (
-	"fmt"
 	"testing"
 )
 
 func TestAverageRuleVonNeumannWithouNeighborhood(t *testing.T) {
 	transitionValue := AverageRuleVonNeumann{}.Transition(nil)
 
-	fmt.Println("The expected value for none neighborhood is 0.0")
 	if transitionValue != 0 {
 		t.Errorf("The expected value is 0.0, but the transition function return %f\n", transitionValue)
 	}
@@ -78,7 +76,7 @@ func TestRule42001D1R1_5(t *testing.T) {
 	state := []float32{0, 1}
 	ruleNumber := 42001
 
-	ruleStruct := MakeStateTransitionFunction(len(state), m, ruleNumber)
+	rule := MakeStateTransitionFunction(len(state), m, ruleNumber)
 
 	transitionTableExpected := [][]float32{
 		{0, 0, 0, 0, 1},
@@ -102,13 +100,13 @@ func TestRule42001D1R1_5(t *testing.T) {
 	height := len(transitionTableExpected)
 	width := len(transitionTableExpected[0])
 
-	if len(ruleStruct.transitionTable) != height {
-		t.Errorf("The expected number of transitions was %d, but %d was obtained.", height, len(ruleStruct.transitionTable))
+	if len(rule.transitionTable) != height {
+		t.Errorf("The expected number of transitions was %d, but %d was obtained.", height, len(rule.transitionTable))
 	}
 
 	for i := 0; i < height; i += 1 {
 		for j := 0; j < width; j += 1 {
-			value := ruleStruct.transitionTable[i][j]
+			value := rule.transitionTable[i][j]
 
 			if value != state[0] && value != state[1] {
 				t.Errorf("The state %f does not belong to {%.0f, %.0f} state set.", value, state[0], state[1])
@@ -119,7 +117,7 @@ func TestRule42001D1R1_5(t *testing.T) {
 			}
 		}
 
-		transitionTo := ruleStruct.Transition(transitionTableExpected[i][:m])
+		transitionTo := rule.Transition(transitionTableExpected[i][:m])
 
 		if transitionTableExpected[i][m] != transitionTo {
 			t.Errorf("The expected transition is %f, but %f was obtained.", transitionTableExpected[i][m], transitionTo)
