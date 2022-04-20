@@ -1,8 +1,12 @@
 package cellularautomata
 
 import (
+	"fmt"
 	"math"
 	"testing"
+
+	"github.com/arbori/population.git/population/lattice"
+	"github.com/arbori/population.git/population/rule"
 )
 
 func TestNeighborhoodVonNeummanCreate(t *testing.T) {
@@ -164,54 +168,108 @@ func TestNeighborhoodMooreCreate(t *testing.T) {
 	}
 }
 
-func TestRuleCreation(t *testing.T) {
+func TestCANeighborhood(t *testing.T) {
+	d := 2
+	r := 1
+	m := d*r*(r+1) + 1
+	ruleNumber := 30
+
+	states := []float32{0, 1}
+	motion := NeighborhoodMotionVonNeumman(d, r)
+	ruleStruct := rule.MakeStateTransitionFunction(len(states), m, ruleNumber)
+
+	ca, err := New(states, motion, ruleStruct, 7, 5)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	ca.Set(0, 1, 1)
+	ca.Set(1, 2, 1)
+	ca.Set(1, 3, 1)
+
+	ca.Set(1, 1, 2)
+	ca.Set(0, 2, 2)
+	ca.Set(1, 3, 2)
+
+	ca.Set(1, 1, 3)
+	ca.Set(1, 2, 3)
+	ca.Set(0, 3, 3)
+
+	neighborhood := ca.NeighborhoodValues(2, 2)
+
+	if neighborhood == nil {
+		t.Error("Neighborhood vector supose to be not nil")
+	}
+
+	for i := 0; i < len(neighborhood); i += 1 {
+		cellValue := ca.Get(2+motion[i][0], 2+motion[i][1])
+
+		if neighborhood[i] != cellValue {
+			t.Errorf("neighborhood[%d] == %f, but the correct value is %f.", i, neighborhood[i], cellValue)
+		}
+	}
+}
+
+func TestTemporalEvolution(t *testing.T) {
 	d := 1
 	r := 1
 	m := d*r*(r+1) + 1
-	state := []float32{0, 1}
+	states := []float32{0, 1}
 	ruleNumber := 30
+	length := 41
+	time := 3
 
-	rule := MakeStateTransitionFunction(len(state), m, ruleNumber)
+	motion := NeighborhoodMotionVonNeumman(d, r)
+	rule := rule.MakeStateTransitionFunction(len(states), m, ruleNumber)
 
-	if rule == nil {
-		t.Errorf("The rule expected to be not nil.")
+	expectedDimention := 1
+	expectedLimit := []int{length, time}
+	expectedTemporalEvolution, latticeErr := lattice.New(expectedLimit...)
+
+	if latticeErr != nil {
+		t.Error(latticeErr)
 	}
 
-	transitionTableExpected := [][]float32{
-		{0, 0, 0, 0},
-		{0, 0, 1, 1},
-		{0, 1, 0, 1},
-		{0, 1, 1, 1},
-		{1, 0, 0, 1},
-		{1, 0, 1, 0},
-		{1, 1, 0, 0},
-		{1, 1, 1, 0},
+	expectedTemporalEvolution.Set(1, 21, 0)
+	expectedTemporalEvolution.Set(1, 20, 1)
+	expectedTemporalEvolution.Set(1, 21, 1)
+	expectedTemporalEvolution.Set(1, 22, 1)
+	expectedTemporalEvolution.Set(1, 19, 2)
+	expectedTemporalEvolution.Set(1, 20, 2)
+	expectedTemporalEvolution.Set(1, 23, 2)
+
+	ca, err := New(states, motion, rule, expectedLimit[0])
+
+	if err != nil {
+		t.Error(err)
 	}
 
-	height := len(transitionTableExpected)
-	width := len(transitionTableExpected[0])
+	limit := ca.Limits()
 
-	if len(rule.(StateTransitionFunction).transitionTable) != height {
-		t.Errorf("The expected number of transitions was %d, but %d was obtained.", height, len(rule.(StateTransitionFunction).transitionTable))
+	if len(limit) != expectedDimention || limit[0] != expectedLimit[0] {
+		t.Error("The dimention and limits suppose to be 1 and 41, respectively.")
 	}
 
-	for i := 0; i < height; i += 1 {
-		for j := 0; j < width; j += 1 {
-			value := rule.(StateTransitionFunction).transitionTable[i][j]
+	ca.Set(1, 21)
 
-			if value != state[0] && value != state[1] {
-				t.Errorf("The state %f does not belong to {%f, %f} state set.", value, state[0], state[1])
-			}
+	for y := 0; y < 3; y += 1 {
+		for x := 0; x < limit[0]; x += 1 {
+			if ca.Get(x) != expectedTemporalEvolution.At(x, y) {
+				te := ""
+				teExpec := ""
 
-			if value != transitionTableExpected[i][j] {
-				t.Errorf("The expected state was %f, but %f was obtained.", transitionTableExpected[i][j], value)
+				for j := 0; j < limit[0]; j += 1 {
+					te += fmt.Sprintf("%.0f", ca.Get(j))
+					teExpec += fmt.Sprintf("%.0f", expectedTemporalEvolution.At(j, y))
+				}
+
+				t.Errorf("Temporal evolution is wrong.\nExpected: %s\nCurrent:  %s", teExpec, te)
+
+				break
 			}
 		}
 
-		transitionTo := rule.Transition(transitionTableExpected[i][:m])
-
-		if transitionTableExpected[i][m] != transitionTo {
-			t.Errorf("The expected transition is %f, but %f was obtained.", transitionTableExpected[i][m], transitionTo)
-		}
+		ca.Evolve()
 	}
 }

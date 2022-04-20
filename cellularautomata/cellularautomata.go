@@ -10,13 +10,13 @@ import (
 type Cellularautomata struct {
 	env       lattice.Lattice
 	mirror    lattice.Lattice
-	states    []interface{}
+	states    []float32
 	motion    [][]int
 	rule      rule.Rule
 	dimention int
 }
 
-func New(states []interface{}, motion [][]int, rule rule.Rule, dim ...int) (Cellularautomata, error) {
+func New(states []float32, motion [][]int, rule rule.Rule, dim ...int) (Cellularautomata, error) {
 	var err error
 	var env lattice.Lattice
 	var mirror lattice.Lattice
@@ -36,8 +36,103 @@ func New(states []interface{}, motion [][]int, rule rule.Rule, dim ...int) (Cell
 	return Cellularautomata{
 		env:       env,
 		mirror:    mirror,
+		states:    states,
+		motion:    motion,
+		rule:      rule,
 		dimention: len(dim),
 	}, nil
+}
+
+func (ca *Cellularautomata) NeighborhoodValues(X ...int) []float32 {
+	size := len(ca.motion)
+	dimention := len(ca.motion[0])
+
+	if dimention != len(X) {
+		return make([]float32, 0)
+	}
+
+	neighborhood := make([]float32, size)
+	point := make([]int, dimention)
+
+	for n := 0; n < size; n += 1 {
+		for c := 0; c < dimention; c += 1 {
+			point[c] = ca.motion[n][c] + X[c]
+
+			if point[c] < 0 {
+				point[c] = ca.env.Limits[c] + point[c]
+			} else if point[c] >= ca.env.Limits[c] {
+				point[c] = point[c] - ca.env.Limits[c]
+			}
+		}
+
+		neighborhood[n] = ca.env.At(point...)
+	}
+
+	return neighborhood
+}
+
+func (ca *Cellularautomata) Get(x ...int) float32 {
+	return ca.env.At(x...)
+}
+
+func (ca *Cellularautomata) Set(value float32, x ...int) {
+	for i := 0; ca.states[i] != value; i += 1 {
+	}
+
+	ca.env.Set(value, x...)
+}
+
+func (ca *Cellularautomata) Dimention() int {
+	return ca.env.Dimention
+}
+
+func (ca *Cellularautomata) Limits() []int {
+	return ca.env.Limits
+}
+
+func (ca *Cellularautomata) Evolve() {
+	point := make([]int, ca.env.Dimention)
+	position := 0
+	overflowed := 1
+
+	point[0] = -1
+
+	for inc(&point, &ca.env.Limits, position, overflowed) {
+		neighborhood := ca.NeighborhoodValues(point...)	
+		state := ca.rule.Transition(neighborhood)
+
+		ca.mirror.Set(state, point...)
+	}
+
+	for i := 0; i < len(point); i += 1 {
+		point[i] = 0
+	}
+	position = 0
+	overflowed = 1
+
+	point[0] = -1
+
+	for inc(&point, &ca.env.Limits, position, overflowed) {
+		ca.env.Set(ca.mirror.At(point...), point...)
+	}
+}
+
+func inc(point *[]int, limits *[]int, position int, overflowed int) bool {
+	if position >= len(*point) || len(*point) != len(*limits) || (*point)[position] >= (*limits)[position] {
+		return false
+	}
+
+	(*point)[position] += overflowed
+
+	if (*point)[position] >= (*limits)[position] {
+		(*point)[position] = 0
+		overflowed = 1
+		position += 1
+
+		return inc(point, limits, position+1, overflowed)
+	}
+
+	return true
 }
 
 func NeighborhoodMotionVonNeumman(d int, r int) [][]int {
@@ -102,107 +197,4 @@ func nextPointer(current []int, d int, r int) []int {
 	}
 
 	return next
-}
-
-type StateTransitionFunction struct {
-	numberOfStates            int
-	numberOfNeighborhoodCells int
-	ruleNumber                int
-	transitionTable           [][]float32
-}
-
-func (st StateTransitionFunction) Transition(neighborhood []float32) float32 {
-	for i := 0; i < len(st.transitionTable); i += 1 {
-		match := true
-
-		for j := 0; match && j < len(st.transitionTable[i])-1; j += 1 {
-			match = match && neighborhood[j] == st.transitionTable[i][j]
-		}
-
-		if match {
-			return st.transitionTable[i][len(st.transitionTable[i])-1]
-		}
-	}
-
-	return 0
-}
-
-func MakeStateTransitionFunction(statesSize int, m int, ruleNumber int) rule.Rule {
-	base := float64(statesSize)
-	cells := float64(m)
-
-	rule := StateTransitionFunction{
-		numberOfStates:            statesSize,
-		numberOfNeighborhoodCells: m,
-		ruleNumber:                ruleNumber,
-	}
-
-	var transitionsSize int = int(math.Pow(base, cells))
-
-	rule.transitionTable = make([][]float32, transitionsSize)
-
-	ruleconverted := numBaseConv(ruleNumber, statesSize)
-	convPos := 0
-	convSize := len(ruleconverted)
-
-	value := float32(ruleconverted[convPos])
-	convPos += 1
-
-	rule.transitionTable[0] = nextTransition(nil, cells, value, float32(statesSize))
-
-	for i := 1; i < transitionsSize; i += 1 {
-		if convPos < convSize {
-			value = float32(ruleconverted[convPos])
-			convPos += 1
-		} else {
-			value = 0
-		}
-
-		rule.transitionTable[i] = nextTransition(rule.transitionTable[i-1], cells, value, float32(statesSize))
-	}
-
-	return rule
-}
-
-func nextTransition(current []float32, cells float64, value float32, max float32) []float32 {
-	m := int(cells)
-
-	next := make([]float32, m+1)
-
-	for j := 0; j < m; j += 1 {
-		if current == nil {
-			next[j] = 0
-		} else {
-			next[j] = current[j]
-		}
-	}
-
-	for j := m - 1; current != nil && j >= 0; j -= 1 {
-		next[j] = current[j] + 1
-
-		if next[j] < max {
-			break
-		}
-
-		next[j] = 0
-	}
-
-	next[m] = value
-
-	return next
-}
-
-func numBaseConv(n int, base int) []int {
-	result := make([]int, 0)
-
-	for n >= base {
-		result = append(result, n%base)
-		n = n / base
-	}
-
-	if n > 0 {
-		result = append(result, n)
-	}
-
-	return result
 }
