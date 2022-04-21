@@ -6,8 +6,9 @@ import (
 
 func TestAverageRuleVonNeumannWithouNeighborhood(t *testing.T) {
 	transitionValue := AverageRuleVonNeumann{}.Transition(nil)
+	var averageExpected float32 = 0.0
 
-	if transitionValue != 0 {
+	if transitionValue != averageExpected {
 		t.Errorf("The expected value is 0.0, but the transition function return %f\n", transitionValue)
 	}
 }
@@ -18,6 +19,58 @@ func TestAverageRuleVonNeumannIncompliteNeighborhood(t *testing.T) {
 
 	if transitionValue != averageExpected {
 		t.Errorf("The expected value is %f, but the transition function return %f\n", averageExpected, transitionValue)
+	}
+}
+
+func TestAverageRuleVonNeumannTransition(t *testing.T) {
+	neighborhood := []float32{2.3, 1.7, 3.14, 1.07, 5.1}
+	var average float32 = 0.0
+
+	for i := 0; i < len(neighborhood); i += 1 {
+		average += neighborhood[i]
+	}
+
+	average /= float32(len(neighborhood))
+
+	transitionValue := AverageRuleVonNeumann{}.Transition(neighborhood)
+
+	if transitionValue != average {
+		t.Errorf("The expected value is %f, but the transition function return %f\n", average, transitionValue)
+	}
+}
+
+func TestAverageRuleMooreWithouNeighborhood(t *testing.T) {
+	transitionValue := AverageRuleMoore{}.Transition(nil)
+	var averageExpected float32 = 0.0
+
+	if transitionValue != averageExpected {
+		t.Errorf("The expected value is 0.0, but the transition function return %f\n", transitionValue)
+	}
+}
+
+func TestAverageRuleMooreIncompliteNeighborhood(t *testing.T) {
+	transitionValue := AverageRuleMoore{}.Transition([]float32{2.3, 1.7})
+	var averageExpected float32 = 0.0
+
+	if transitionValue != averageExpected {
+		t.Errorf("The expected value is %f, but the transition function return %f\n", averageExpected, transitionValue)
+	}
+}
+
+func TestAverageRuleMooreTransition(t *testing.T) {
+	neighborhood := []float32{2.3, 1.7, 3.14, 1.07, 5.1, 0.7, 9.01, 4.2, 5.25}
+	var average float32 = 0.0
+
+	for i := 0; i < len(neighborhood); i += 1 {
+		average += neighborhood[i]
+	}
+
+	average /= float32(len(neighborhood))
+
+	transitionValue := AverageRuleMoore{}.Transition(neighborhood)
+
+	if transitionValue != average {
+		t.Errorf("The expected value is %f, but the transition function return %f\n", average, transitionValue)
 	}
 }
 
