@@ -21,13 +21,13 @@ func New(states []float32, motion [][]int, rule rule.Rule, dim ...int) (Cellular
 	var env lattice.Lattice
 	var mirror lattice.Lattice
 
-	env, err = lattice.New(dim...)
+	env, err = lattice.NewWithValue(float32(0), dim...)
 
 	if err != nil {
 		return Cellularautomata{}, err
 	}
 
-	mirror, err = lattice.New(dim...)
+	mirror, err = lattice.NewWithValue(float32(0), dim...)
 
 	if err != nil {
 		return Cellularautomata{}, err
@@ -65,14 +65,22 @@ func (ca *Cellularautomata) NeighborhoodValues(X ...int) []float32 {
 			}
 		}
 
-		neighborhood[n] = ca.env.At(point...)
+		neighborhood[n] = ca.env.At(point...).(float32)
 	}
 
 	return neighborhood
 }
 
 func (ca *Cellularautomata) Get(x ...int) float32 {
-	return ca.env.At(x...)
+	var result float32 = 0
+
+	cell := ca.env.At(x...)
+
+	if cell != nil {
+		result = cell.(float32)
+	}
+
+	return result
 }
 
 func (ca *Cellularautomata) Set(value float32, x ...int) {
@@ -98,7 +106,7 @@ func (ca *Cellularautomata) Evolve() {
 	point[0] = -1
 
 	for inc(&point, &ca.env.Limits, position, overflowed) {
-		neighborhood := ca.NeighborhoodValues(point...)	
+		neighborhood := ca.NeighborhoodValues(point...)
 		state := ca.rule.Transition(neighborhood)
 
 		ca.mirror.Set(state, point...)

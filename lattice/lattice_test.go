@@ -1,7 +1,6 @@
 package lattice
 
 import (
-	"fmt"
 	"math/rand"
 	"testing"
 )
@@ -21,8 +20,8 @@ func TestLatticeDimention(t *testing.T) {
 
 	for y := 0; y < lattice.Limits[1]; y += 1 {
 		for x := 0; x < lattice.Limits[0]; x += 1 {
-			if lattice.At(x, y) != 0 {
-				t.Errorf("The value at (%d, %d) suppose to be 0.", x, y)
+			if lattice.At(x, y) != nil {
+				t.Errorf("The value at (%d, %d) suppose to be nil.", x, y)
 			}
 		}
 	}
@@ -39,8 +38,8 @@ func TestLatticeDimention(t *testing.T) {
 	}
 
 	for x := 0; x < lattice.Limits[0]; x += 1 {
-		if lattice.At(x) != 0 {
-			t.Errorf("The value at (%d) suppose to be 0.", x)
+		if lattice.At(x) != nil {
+			t.Errorf("The value at (%d) suppose to be nil.", x)
 		}
 	}
 }
@@ -63,7 +62,7 @@ func TestLatticeSetCellValue(t *testing.T) {
 			expectedValue = 10 * rand.Float32()
 
 			lattice.Set(expectedValue, x, y)
-			retrieved = lattice.At(x, y)
+			retrieved = lattice.At(x, y).(float32)
 
 			if retrieved != expectedValue {
 				t.Errorf("Expected value is %f, but %f was retrieved.", expectedValue, retrieved)
@@ -73,14 +72,17 @@ func TestLatticeSetCellValue(t *testing.T) {
 }
 
 func TestArrayOutOfBoundsLessThanInterval(t *testing.T) {
+	var X int = 0
+	var Y int = 0
+
 	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Recovered in TestArrayOutOfBoundsLessThanInterval:", r)
+		if r := recover(); r == nil {
+			t.Errorf("An array out of bounds was not catch with y == %d.", Y)
 		}
 	}()
 
-	X := 13
-	Y := 7
+	X = 13
+	Y = 7
 	var valueTest float32 = 42.0
 
 	lattice, err := New(X, Y)
@@ -95,14 +97,17 @@ func TestArrayOutOfBoundsLessThanInterval(t *testing.T) {
 }
 
 func TestArrayOutOfBoundsGreaterThanInterval(t *testing.T) {
+	var X int = 0
+	var Y int = 0
+
 	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Recovered in TestArrayOutOfBoundsGreaterThanInterval:", r)
+		if r := recover(); r == nil {
+			t.Errorf("An array out of bounds was not catch with y == %d.", Y)
 		}
 	}()
 
-	X := 13
-	Y := 7
+	X = 13
+	Y = 7
 	var valueTest float32 = 42.0
 
 	lattice, err := New(X, Y)
@@ -117,15 +122,19 @@ func TestArrayOutOfBoundsGreaterThanInterval(t *testing.T) {
 }
 
 func TestDimentionOutOfBounds(t *testing.T) {
+	var X int = 0
+	var Y int = 0
+	var Z int = 0
+
 	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Recovered in TestDimentionOutOfBounds:", r)
+		if r := recover(); r == nil {
+			t.Errorf("A dimention out of bounds was not catch with only (%d, %d), not (%d, %d, %d).", X, Y, X, Y, Z)
 		}
 	}()
 
-	X := 13
-	Y := 7
-	Z := 2
+	X = 13
+	Y = 7
+	Z = 2
 	var valueTest float32 = 42.0
 
 	lattice, err := New(X, Y, Z)

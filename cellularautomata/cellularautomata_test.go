@@ -225,19 +225,19 @@ func TestTemporalEvolution(t *testing.T) {
 
 	expectedDimention := 1
 	expectedLimit := []int{length, time}
-	expectedTemporalEvolution, latticeErr := lattice.New(expectedLimit...)
+	expectedTemporalEvolution, latticeErr := lattice.NewWithValue(float32(0), expectedLimit...)
 
 	if latticeErr != nil {
 		t.Error(latticeErr)
 	}
 
-	expectedTemporalEvolution.Set(1, 21, 0)
-	expectedTemporalEvolution.Set(1, 20, 1)
-	expectedTemporalEvolution.Set(1, 21, 1)
-	expectedTemporalEvolution.Set(1, 22, 1)
-	expectedTemporalEvolution.Set(1, 19, 2)
-	expectedTemporalEvolution.Set(1, 20, 2)
-	expectedTemporalEvolution.Set(1, 23, 2)
+	expectedTemporalEvolution.Set(float32(1), 21, 0)
+	expectedTemporalEvolution.Set(float32(1), 20, 1)
+	expectedTemporalEvolution.Set(float32(1), 21, 1)
+	expectedTemporalEvolution.Set(float32(1), 22, 1)
+	expectedTemporalEvolution.Set(float32(1), 19, 2)
+	expectedTemporalEvolution.Set(float32(1), 20, 2)
+	expectedTemporalEvolution.Set(float32(1), 23, 2)
 
 	ca, err := New(states, motion, rule, expectedLimit[0])
 
@@ -255,13 +255,13 @@ func TestTemporalEvolution(t *testing.T) {
 
 	for y := 0; y < 3; y += 1 {
 		for x := 0; x < limit[0]; x += 1 {
-			if ca.Get(x) != expectedTemporalEvolution.At(x, y) {
+			if ca.Get(x) != expectedTemporalEvolution.At(x, y).(float32) {
 				te := ""
 				teExpec := ""
 
 				for j := 0; j < limit[0]; j += 1 {
 					te += fmt.Sprintf("%.0f", ca.Get(j))
-					teExpec += fmt.Sprintf("%.0f", expectedTemporalEvolution.At(j, y))
+					teExpec += fmt.Sprintf("%.0f", expectedTemporalEvolution.At(j, y).(float32))
 				}
 
 				t.Errorf("Temporal evolution is wrong.\nExpected: %s\nCurrent:  %s", teExpec, te)

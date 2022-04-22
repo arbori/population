@@ -12,7 +12,11 @@ type Lattice struct {
 }
 
 func New(dim ...int) (Lattice, error) {
-	if len(dim) <= 0 {
+	return NewWithValue(nil, dim...)
+}
+
+func NewWithValue(value interface{}, dim ...int) (Lattice, error) {
+		if len(dim) <= 0 {
 		return Lattice{}, errors.New("Wrong dimention")
 	}
 
@@ -21,47 +25,45 @@ func New(dim ...int) (Lattice, error) {
 	result := Lattice{
 		Dimention: dimention,
 		Limits:    dim,
-		lines:     makeLine(dim...),
+		lines:     makeLine(value, dim...),
 	}
 
 	return result, nil
 }
 
-func (l Lattice) At(x ...int) float32 {
+func (l Lattice) At(x ...int) interface{} {
 	if len(x) != l.Dimention {
 		panic(fmt.Sprintf("Dimention out of bounds: The X's dimention %d is diferent than lattice's dimention %d.", len(x), l.Dimention))
 	}
 
-	line := get(x, l.lines)
+	cell := get(x, l.lines)
 
-	return (*line).(float32)
+	return (*cell)
 }
 
-func (l Lattice) Set(value float32, x ...int) {
+func (l Lattice) Set(value interface{}, x ...int) {
 	if len(x) != l.Dimention {
 		panic(fmt.Sprintf("Dimention out of bounds: The X's dimention %d is diferent than lattice's dimention %d.", len(x), l.Dimention))
 	}
 
-	line := get(x, l.lines)
+	cell := get(x, l.lines)
 
-	(*line) = value
+	(*cell) = value
 }
 
-var defaultCellValue float32 = 0
-
-func makeLine(dim ...int) []interface{} {
+func makeLine(value interface{}, dim ...int) []interface{} {
 	var rows []interface{} = make([]interface{}, dim[0])
 
 	for i := 0; i < dim[0]; i += 1 {
-		fillLine(&rows[i], dim[1:])
+		fillLine(value, &rows[i], dim[1:])
 	}
 
 	return rows
 }
 
-func fillLine(cell *interface{}, dim []int) {
+func fillLine(value interface{}, cell *interface{}, dim []int) {
 	if len(dim) < 1 {
-		(*cell) = defaultCellValue
+		(*cell) = value
 		return
 	}
 
@@ -71,11 +73,11 @@ func fillLine(cell *interface{}, dim []int) {
 
 	if len(dim) == 1 {
 		for i := 0; i < size; i += 1 {
-			(*cell).([]interface{})[i] = defaultCellValue
+			(*cell).([]interface{})[i] = value
 		}
 	} else {
 		for i := 0; i < size; i += 1 {
-			fillLine(&(*cell).([]interface{})[i], dim[1:])
+			fillLine(value, &(*cell).([]interface{})[i], dim[1:])
 		}
 	}
 }
