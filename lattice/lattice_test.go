@@ -3,6 +3,8 @@ package lattice
 import (
 	"math/rand"
 	"testing"
+
+	"github.com/arbori/population.git/population/space"
 )
 
 func TestLatticeDimention(t *testing.T) {
@@ -146,4 +148,42 @@ func TestDimentionOutOfBounds(t *testing.T) {
 	X_out := 0
 	Y_out := 7
 	lattice.Set(valueTest, X_out, Y_out)
+}
+
+func TestMotion(t *testing.T) {
+	X := space.Point([]int{5, 5})
+
+	env, err := New(X...)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	x := space.Point([]int{4, 4})
+	expected := space.Point([]int{x[0] % X[0], x[1] % X[1]})
+	point := env.Enclose(x)
+
+	if !point.Equals(expected) {
+		t.Errorf("The expected point is (%d, %d), after motion to (%d, %d). But (%d, %d) was obtained.",
+			expected[0], expected[1], x[0], x[1], point[0], point[1])
+	}
+
+	x = space.Point([]int{23, 42})
+	expected = space.Point([]int{x[0] % X[0], x[1] % X[1]})
+	point = env.Enclose(x)
+
+	if !point.Equals(expected) {
+		t.Errorf("The expected point is (%d, %d), after motion to (%d, %d). But (%d, %d) was obtained.",
+			expected[0], expected[1], x[0], x[1], point[0], point[1])
+	}
+
+	x = space.Point([]int{-51, -16})
+	expected = space.Point([]int{(-x[0] + X[0]) % X[0], (-x[1] + X[1]) % X[1]})
+
+	point = env.Enclose(x)
+
+	if !point.Equals(expected) {
+		t.Errorf("The expected point is (%d, %d), after motion to (%d, %d). But (%d, %d) was obtained.",
+			expected[0], expected[1], x[0], x[1], point[0], point[1])
+	}
 }

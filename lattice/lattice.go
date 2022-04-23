@@ -3,6 +3,8 @@ package lattice
 import (
 	"errors"
 	"fmt"
+
+	"github.com/arbori/population.git/population/space"
 )
 
 type Lattice struct {
@@ -16,7 +18,7 @@ func New(dim ...int) (Lattice, error) {
 }
 
 func NewWithValue(value interface{}, dim ...int) (Lattice, error) {
-		if len(dim) <= 0 {
+	if len(dim) <= 0 {
 		return Lattice{}, errors.New("Wrong dimention")
 	}
 
@@ -49,6 +51,26 @@ func (l Lattice) Set(value interface{}, x ...int) {
 	cell := get(x, l.lines)
 
 	(*cell) = value
+}
+
+func (l Lattice) Enclose(to space.Point) space.Point {
+	if to == nil || l.Dimention != len(to) {
+		return space.Point{}
+	}
+
+	point := make([]int, l.Dimention)
+
+	for c := 0; c < l.Dimention; c += 1 {
+		point[c] = to[c]
+
+		if point[c] < 0 {
+			point[c] = (-point[c] + l.Limits[c]) % l.Limits[c]
+		} else if point[c] >= l.Limits[c] {
+			point[c] = point[c] % l.Limits[c]
+		}
+	}
+
+	return point
 }
 
 func makeLine(value interface{}, dim ...int) []interface{} {
