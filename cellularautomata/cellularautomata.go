@@ -5,6 +5,7 @@ import (
 
 	"github.com/arbori/population.git/population/lattice"
 	"github.com/arbori/population.git/population/rule"
+	"github.com/arbori/population.git/population/space"
 )
 
 type Cellularautomata struct {
@@ -125,7 +126,7 @@ func (ca *Cellularautomata) Evolve() {
 	}
 }
 
-func inc(point *[]int, limits *[]int, position int, overflowed int) bool {
+func inc(point *[]int, limits *space.Point, position int, overflowed int) bool {
 	if position >= len(*point) || len(*point) != len(*limits) || (*point)[position] >= (*limits)[position] {
 		return false
 	}

@@ -3,6 +3,8 @@ package agent
 import (
 	"math/rand"
 
+	"github.com/arbori/population.git/population/cellularautomata"
+	"github.com/arbori/population.git/population/lattice"
 	"github.com/arbori/population.git/population/space"
 )
 
@@ -38,8 +40,8 @@ func retriveAgentsInTheNeighborhood(e *space.Environment, x int, y int) []Mobile
 	var j int
 
 	for index := 0; index < e.Motion.Size; index += 1 {
-		j = e.Motion.Directions[index].X[0] + x
-		i = e.Motion.Directions[index].X[1] + y
+		j = e.Motion.Directions[index][0] + x
+		i = e.Motion.Directions[index][1] + y
 
 		if j < 0 {
 			j = e.X + j
@@ -81,7 +83,7 @@ func AgentsExchangeResources(e *space.Environment, exc *Exchange, interationRule
 
 				agentsInTheNeighborhood[firsti].IsAvailable = false
 				agentsInTheNeighborhood[secoundi].IsAvailable = false
-				
+
 				agentsInTheNeighborhood = append(agentsInTheNeighborhood[:firsti], agentsInTheNeighborhood[firsti+1:]...)
 				agentsInTheNeighborhood = append(agentsInTheNeighborhood[:secoundi], agentsInTheNeighborhood[secoundi+1:]...)
 			}
@@ -89,25 +91,32 @@ func AgentsExchangeResources(e *space.Environment, exc *Exchange, interationRule
 	}
 }
 
-type MotionRuleType func(environment *space.Environment, position *space.Point) space.Point
+type MotionRuleType func(env *lattice.Lattice, ca *cellularautomata.Cellularautomata, posiotion space.Point) space.Point
 
 type MobileAgent struct {
 	Position    space.Point
-	Foodstuffs  float32
+	Resources   float32
 	MotionRule  MotionRuleType
-	x           []int
 	IsAvailable bool
 }
 
-func (a *MobileAgent) Walk(env *space.Environment) {
-	position := a.MotionRule(env, &a.Position)
+func (a *MobileAgent) Walk(env *lattice.Lattice, ca *cellularautomata.Cellularautomata) {
+	position := a.MotionRule(env, ca, a.Position)
 
-	if env.Cells[position.X[0]][position.X[1]].Content == nil {
-		env.Cells[a.Position.X[0]][a.Position.X[1]].Content = nil
-		env.Cells[position.X[0]][position.X[1]].Content = a
+	if env.At(position...) == nil {
+		env.Set(nil, a.Position...)
+		env.Set(a, position...)
 
-		a.Position.Assign(&position)
+		for i := 0; i < len(position); i += 1 {
+			a.Position[i] = position[i]
+		}
 	}
 
-	env.Cells[a.Position.X[0]][a.Position.X[1]].Value = a.Foodstuffs
+	ca.Set(a.Resources, a.Position...)
 }
+
+// func GetNewPosition(position *space.Point, X *space.Point, motion *[][]int, directionChoosed int) space.Point {
+// 	return lattice.Enclose(space.Point{
+// 		(*motion)[directionChoosed][0] + (*position)[0],
+// 		(*motion)[directionChoosed][1] + (*position)[1]}, *X)
+// }

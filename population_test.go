@@ -4,7 +4,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/arbori/population.git/population/rule"
+	//"github.com/arbori/population.git/population/rule"
 	"github.com/arbori/population.git/population/space"
 )
 
@@ -13,11 +13,11 @@ func TestAplyRuleSimulation(t *testing.T) {
 	motion := vonNeumannNeighborhoodMotion
 	environment := constructEnvironment(&motion)
 
-	rule := rule.AverageRuleVonNeumann{
-	}
+	// rule := rule.AverageRuleVonNeumann{
+	// }
 
 	average := func(environment *space.Environment, x int, y int) float32 {
-		return (environment.Cells[x][y].Value + environment.Cells[x-1][y].Value + environment.Cells[x][y+1].Value+ environment.Cells[x+1][y].Value + environment.Cells[x][y-1].Value) / 5
+		return (environment.Cells[x][y].Value + environment.Cells[x-1][y].Value + environment.Cells[x][y+1].Value + environment.Cells[x+1][y].Value + environment.Cells[x][y-1].Value) / 5
 	}
 
 	x := 2
@@ -38,7 +38,7 @@ func TestAplyRuleSimulation(t *testing.T) {
 	y = 1
 	top := average(&environment, x, y)
 
-	environment.ApplyRule(rule)
+	//environment.ApplyRule(rule)
 
 	x = 2
 	y = 2

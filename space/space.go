@@ -1,9 +1,5 @@
 package space
 
-import (
-	"github.com/arbori/population.git/population/rule"
-)
-
 type PointError struct {
 	msg string
 }
@@ -12,46 +8,44 @@ func (pe PointError) Error() string {
 	return pe.msg
 }
 
-type Point struct {
-	X   []int
-	Dim int
-}
-
-func NewPoint(x ...int) Point {
-	result := Point{}
-
-	result.Dim = len(x)
-	result.X = make([]int, result.Dim)
-
-	for i := 0; i < result.Dim; i += 1 {
-		result.X[i] = x[i]
-	}
-
-	return result
-}
+type Point []int
 
 func (p *Point) Assign(point *Point) error {
-	if len(p.X) != len(point.X) {
+	if len(*p) != len(*point) {
 		return PointError{msg: "The length of these two points are different."}
 	}
 
-	for i := 0; i < len(point.X); i += 1 {
-		p.X[i] = point.X[i]
+	for i := 0; i < len(*point); i += 1 {
+		(*p)[i] = (*point)[i]
 	}
 
 	return nil
 }
 
 func (p *Point) Add(point *Point) error {
-	if len(p.X) != len(point.X) {
+	if len(*p) != len(*point) {
 		return PointError{msg: "The length of these two points are different."}
 	}
 
-	for i := 0; i < len(point.X); i += 1 {
-		p.X[i] += point.X[i]
+	for i := 0; i < len(*point); i += 1 {
+		(*p)[i] += (*point)[i]
 	}
 
 	return nil
+}
+
+func (p *Point) Equals(point Point) bool {
+	if point == nil || len(*p) != len(point) {
+		return false
+	}
+
+	for i := 0; i < len(point); i += 1 {
+		if (*p)[i] != (point)[i] {
+			return false
+		}
+	}
+
+	return true
 }
 
 type NeighborhoodMotion struct {
@@ -66,7 +60,7 @@ func MakeNeighborhoodMotion(size int, dimention int) NeighborhoodMotion {
 	}
 
 	for s := 0; s < size; s += 1 {
-		result.Directions[s] = NewPoint(make([]int, dimention)...)
+		result.Directions[s] = make([]int, dimention)
 	}
 
 	return result
@@ -120,8 +114,8 @@ func (e *Environment) NeighborhoodValues(x int, y int) []float32 {
 	var j int
 
 	for index := 0; index < e.Motion.Size; index += 1 {
-		j = e.Motion.Directions[index].X[0] + x
-		i = e.Motion.Directions[index].X[1] + y
+		j = e.Motion.Directions[index][0] + x
+		i = e.Motion.Directions[index][1] + y
 
 		if j < 0 {
 			j = e.X + j
@@ -142,25 +136,26 @@ func (e *Environment) NeighborhoodValues(x int, y int) []float32 {
 }
 
 func (e *Environment) GetNewPosition(position *Point, directionChoosed int) Point {
-	result := NewPoint(
-		e.Motion.Directions[directionChoosed].X[0]+position.X[0],
-		e.Motion.Directions[directionChoosed].X[1]+position.X[1])
+	result := []int{
+		e.Motion.Directions[directionChoosed][0] + (*position)[0],
+		e.Motion.Directions[directionChoosed][1] + (*position)[1]}
 
-	if result.X[0] < 0 {
-		result.X[0] = e.X + result.X[0]
-	} else if result.X[0] >= e.X {
-		result.X[0] = result.X[0] - e.X
+	if result[0] < 0 {
+		result[0] = e.X + result[0]
+	} else if result[0] >= e.X {
+		result[0] = result[0] - e.X
 	}
 
-	if result.X[1] < 0 {
-		result.X[1] = e.Y + result.X[1]
-	} else if result.X[1] >= e.Y {
-		result.X[1] = result.X[1] - e.Y
+	if result[1] < 0 {
+		result[1] = e.Y + result[1]
+	} else if result[1] >= e.Y {
+		result[1] = result[1] - e.Y
 	}
 
 	return result
 }
 
+/*
 func (e *Environment) ApplyRule(r rule.Rule) {
 	for y := 0; y < e.Y; y += 1 {
 		for x := 0; x < e.X; x += 1 {
@@ -174,3 +169,4 @@ func (e *Environment) ApplyRule(r rule.Rule) {
 		}
 	}
 }
+*/

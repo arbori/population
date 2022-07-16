@@ -9,7 +9,7 @@ import (
 
 type Lattice struct {
 	Dimention int
-	Limits    []int
+	Limits    space.Point
 	lines     []interface{}
 }
 
