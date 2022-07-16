@@ -50,8 +50,8 @@ func motionRuleDefinition(env *lattice.Lattice, ca *cellularautomata.Cellularaut
 	}
 
 	return env.Enclose(space.Point{
-		ca.motion[maxPosition][0] + position[0],
-		ca.motion[maxPosition][1] + position[1]})
+		motion[maxPosition][0] + position[0],
+		motion[maxPosition][1] + position[1]})
 }
 
 func makeEnvironmentForTest() space.Environment {
