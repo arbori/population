@@ -52,17 +52,24 @@ func ExchangeResource(I []individuo.Individuo, e int, s float32) []individuo.Ind
 	return P
 }
 
-func RemoveInviableIndividuos(I []individuo.Individuo, c int) []individuo.Individuo {
+// Remove from population the inviable individuos, returning the new population set
+// and the individuos removed.
+func RemoveInviableIndividuos(I []individuo.Individuo, c int) ([]individuo.Individuo, []individuo.Individuo) {
+	removed := make([]individuo.Individuo, 0)
+
 	// Remove inviable individuos
 	for i := 0; i < len(I); i += 1 {
 		I[i].Resources -= c
+		I[i].History = append(I[i].History, I[i].Resources)
 
 		if I[i].Resources < c {
+			removed = append(removed, I[i])
+
 			I = append(I[:i], I[i+1:]...)
 		}
 	}
 
-	return I
+	return I, removed
 }
 
 // Simulate I society surviving based in amount of energy each individuo consume (c),
@@ -71,18 +78,18 @@ func RemoveInviableIndividuos(I []individuo.Individuo, c int) []individuo.Indivi
 // the society need to have to be viable (n).
 func SimulatedSociety(I []individuo.Individuo, c int, e int, s float32, n int) int {
 	var iterations int
-	var deathsAmount int
 
-	deaths := make([]int, 0)
+	removed := make([]individuo.Individuo, 0)
+	deaths := make([]individuo.Individuo, 0)
 
 	// Run the simulation while the society is viable.
 	for iterations = 0; len(I) > n; iterations += 1 {
 		I = ExchangeResource(I, e, s)
 
 		// Remove inviable individuos
-		I = RemoveInviableIndividuos(I, c)
+		I, removed = RemoveInviableIndividuos(I, c)
 
-		deaths = append(deaths, deathsAmount)
+		deaths = append(deaths, removed...)
 	}
 
 	return iterations
