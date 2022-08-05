@@ -11,27 +11,29 @@ import (
 
 func main() {
 	fmt.Println("Simulated society")
+	
+	var individualConsumption int = 2000
+	var individualExchange int = individualConsumption
+	var viabilityThreshold int = 500
 
-	I := make([]individuo.Individuo, 1000)
-	var c int = 2000
-	var e int = c
-	var s float32
-	var n int = 2
+	var societySize = 100000
+	var salidaryProbability float32
+	var epochs int
 
-	var existent int
+	I := make([]individuo.Individuo, societySize)
 
 	rand.Seed(int64(time.Now().Nanosecond()))
 
 	// Sortear a quantidade de recursos para os indivíduos de I.
 	for i := range I {
-		I[i] = individuo.MakeIndividuo(c * rand.Intn(100))
+		I[i] = individuo.MakeIndividuo(individualConsumption * rand.Intn(100))
 	}
 
 	fmt.Printf("\nsolidarity\texistent\n")
 
-	for s = .0; s <= 1; s += .01 {
-		existent = simulation.SimulatedSociety(I, c, e, s, n)
+	for salidaryProbability = .0; salidaryProbability <= 1; salidaryProbability += .01 {
+		epochs = simulation.SimulatedSociety(I, individualConsumption, individualExchange, salidaryProbability, viabilityThreshold)
 
-		fmt.Printf("%f\t%d\n", s, existent)
+		fmt.Printf("%f\t%d\n", salidaryProbability, epochs)
 	}
 }
