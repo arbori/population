@@ -1,4 +1,4 @@
-package individuo
+package simulation
 
 // Individou of population.
 type Individuo struct {

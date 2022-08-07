@@ -2,15 +2,13 @@ package simulation
 
 import (
 	"math/rand"
-
-	"github.com/arbori/population.git/population/individuo"
 )
 
 // Have each individual exchange resources with someone else. The rule is: In the
 // exchange between two individuals, those who have the most receive and those who
 // have the least give.
-func ExchangeResource(I []individuo.Individuo, e int, s float32) []individuo.Individuo {
-	P := make([]individuo.Individuo, 0, len(I))
+func ExchangeResource(I []Individuo, e int, s float32) []Individuo {
+	P := make([]Individuo, 0, len(I))
 
 	// Make exchange while more than two individous did not exchange yet.
 	for len(I) >= 2 {
@@ -54,8 +52,8 @@ func ExchangeResource(I []individuo.Individuo, e int, s float32) []individuo.Ind
 
 // Remove from population the inviable individuos, returning the new population set
 // and the individuos removed.
-func RemoveInviableIndividuos(I []individuo.Individuo, c int) ([]individuo.Individuo, []individuo.Individuo) {
-	removed := make([]individuo.Individuo, 0)
+func RemoveInviableIndividuos(I []Individuo, c int) ([]Individuo, []Individuo) {
+	removed := make([]Individuo, 0)
 
 	// Remove inviable individuos
 	for i := 0; i < len(I); i += 1 {
@@ -76,11 +74,11 @@ func RemoveInviableIndividuos(I []individuo.Individuo, c int) ([]individuo.Indiv
 // how much energy individuos exchange, the probability of an individuo be salidary
 // with other with less energy when exchange energy and tha amount of individuos
 // the society need to have to be viable, viability threshold.
-func SimulatedSociety(I []individuo.Individuo, individualConsumption int, individualExchange int, salidaryProbability float32, viabilityThreshold int) int {
+func SimulatedSociety(I []Individuo, individualConsumption int, individualExchange int, salidaryProbability float32, viabilityThreshold int) int {
 	var iterations int
 
-	removed := make([]individuo.Individuo, 0)
-	deaths := make([]individuo.Individuo, 0)
+	removed := make([]Individuo, 0)
+	deaths := make([]Individuo, 0)
 
 	// Run the simulation while the society is viable.
 	for iterations = 0; len(I) > viabilityThreshold; iterations += 1 {

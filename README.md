@@ -22,4 +22,4 @@ The variable of simulation is:
 |----------| ------------|
 | society size | The number of individuals in the begining of simulation. |
 | salidary probability | The probability that a individual with more resources give to one with less. |
-| epochs | The number of interation that society have been viable |
+| epochs | The answear that this simulation looks for, the number of interation that society have been viable. It could be compared to the time the society survive. |
