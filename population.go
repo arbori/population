@@ -26,13 +26,13 @@ func main() {
 		Ephocs:  0,
 	}
 
-	viabilityRange := simulation.Range{
+	viabilityRange := simulation.Range[int] {
 		Minimum: 500,
 		Maximum: 10500,
 		Delta:   500,
 	}
 
-	solidarityRange := simulation.Range{
+	solidarityRange := simulation.Range[float32] {
 		Minimum: float32(0.0),
 		Maximum: float32(1.0),
 		Delta:   float32(0.1),

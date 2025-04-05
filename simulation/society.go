@@ -3,10 +3,10 @@ package simulation
 import "math/rand"
 
 // Rage is a configuration for the algorithm iteration.
-type Range struct {
-	Minimum interface{}
-	Maximum interface{}
-	Delta   interface{}
+type Range[T any] struct {
+	Minimum T
+	Maximum T
+	Delta   T
 }
 
 // This is the parameters that will use to simulate the iteration between individuals.
@@ -33,14 +33,15 @@ type SocietyRealization struct {
 	Deaths  []Individual
 }
 
+
 // Running the simulation.
-func (s SocietyRealization) Run(viabilityRange Range, solidarityRange Range) []SocietyRealization {
+func (s SocietyRealization) Run(viabilityRange Range[int], solidarityRange Range[float32]) []SocietyRealization {
 	surface := make([]SocietyRealization, 0)
 
 	population := MakeSociety(s.Society.SocietySize, s.Society.IndividualConsumption)
 
-	for viability := viabilityRange.Minimum.(int); viability <= viabilityRange.Maximum.(int); viability += viabilityRange.Delta.(int) {
-		for solidarity := solidarityRange.Minimum.(float32); solidarity <= solidarityRange.Maximum.(float32); solidarity += solidarityRange.Delta.(float32) {
+	for viability := viabilityRange.Minimum; viability <= viabilityRange.Maximum; viability += viabilityRange.Delta {
+		for solidarity := solidarityRange.Minimum; solidarity <= solidarityRange.Maximum; solidarity += solidarityRange.Delta {
 			realization := SocietyRealization{
 				Society: SocietyParameters{
 					IndividualConsumption: s.Society.IndividualConsumption,
@@ -53,10 +54,9 @@ func (s SocietyRealization) Run(viabilityRange Range, solidarityRange Range) []S
 				Deaths: make([]Individual, 0),
 			}
 
-			simulatedSociety(population, &realization)
+			realization.simulatedSociety(population)
 
 			surface = append(surface, realization)
-
 		}
 	}
 
@@ -67,26 +67,25 @@ func (s SocietyRealization) Run(viabilityRange Range, solidarityRange Range) []S
 // how much energy individuos exchange, the probability of an individuo be salidary
 // with other with less energy when exchange energy and tha amount of individuos
 // the society need to have to be viable, viability threshold.
-func simulatedSociety(population []Individual, realization *SocietyRealization) {
+func (s SocietyRealization) simulatedSociety(population []Individual) {
 	var iterations int
 	var removed []Individual
 
 	deaths := make([]Individual, 0)
 
 	// Run the simulation while the society is viable.
-	for iterations = 0; len(population) > realization.Society.ViabilityAmount; iterations += 1 {
-		population, removed = exchangeResource(population, realization.Society.IndividualConsumption, realization.Society.IndividualExchange, realization.Society.SolidarityProbability)
+	for iterations = 0; len(population) > s.Society.ViabilityAmount; iterations += 1 {
+		population, removed = s.exchangeResource(population)
 
 		deaths = append(deaths, removed...)
 	}
 
 	// TODO: Send dead individuals to save information of simulation dynamics
 }
-
 // Have each individual exchange resources with someone else. The rule is: In the
 // exchange between two individuals, those who have the most receive and those who
 // have the least give.
-func exchangeResource(population []Individual, individualConsumption int, individualExchange int, solidarityProbability float32) ([]Individual, []Individual) {
+func (s SocietyRealization) exchangeResource(population []Individual) ([]Individual, []Individual) {
 	newPopulation := make([]Individual, 0, len(population))
 	var notViable []Individual
 
@@ -94,12 +93,12 @@ func exchangeResource(population []Individual, individualConsumption int, indivi
 
 	// Make exchange while more than two individuals did not exchange yet.
 	for len(population) >= 2 {
-		firstIndex, secondIndex := chooseIndividualsIndexes(len(population))
+		firstIndex, secondIndex := s.chooseIndividualsIndexes(len(population))
 
-		ExchangeResourceRule(&population[firstIndex], &population[secondIndex], individualExchange, solidarityProbability)
+		ExchangeResourceRule(&population[firstIndex], &population[secondIndex], s.Society.IndividualExchange, s.Society.SolidarityProbability)
 
 		// Move to new population the viables individuals and to removed the inviables.
-		newPopulation, notViable = moveViablesIndividuals(newPopulation, individualConsumption, &population[firstIndex], &population[secondIndex])
+		newPopulation, notViable = s.moveViablesIndividuals(newPopulation, &population[firstIndex], &population[secondIndex])
 		removed = append(removed, notViable...)
 
 		// Remove from current population which ones that already exchanges resources.
@@ -119,7 +118,7 @@ func exchangeResource(population []Individual, individualConsumption int, indivi
 }
 
 // Choose two indexes for two individual based in the size population.
-func chooseIndividualsIndexes(size int) (int, int) {
+func (s SocietyRealization) chooseIndividualsIndexes(size int) (int, int) {
 	firstIndex := rand.Intn(size)
 	secondIndex := rand.Intn(size)
 
@@ -132,13 +131,13 @@ func chooseIndividualsIndexes(size int) (int, int) {
 }
 
 // Moves individual to the new population if it is still viable after resource consumption.
-func moveViablesIndividuals(newPopulation []Individual, IndividualConsumption int, individuals ...*Individual) ([]Individual, []Individual) {
+func (s SocietyRealization) moveViablesIndividuals(newPopulation []Individual, individuals ...*Individual) ([]Individual, []Individual) {
 	notViable := make([]Individual, 0)
 
 	for _, individual := range individuals {
-		individualConsumption(individual, IndividualConsumption)
+		s.individualConsumption(individual)
 
-		if individual.Resources >= IndividualConsumption {
+		if individual.Resources >= s.Society.IndividualConsumption {
 			newPopulation = append(newPopulation, *individual)
 		} else {
 			notViable = append(notViable, *individual)
@@ -149,7 +148,7 @@ func moveViablesIndividuals(newPopulation []Individual, IndividualConsumption in
 }
 
 // Individual consumption of amount
-func individualConsumption(individual *Individual, IndividualConsumption int) {
-	individual.Resources -= IndividualConsumption
+func (s SocietyRealization) individualConsumption(individual *Individual) {
+	individual.Resources -= s.Society.IndividualConsumption
 	individual.History = append(individual.History, individual.Resources)
 }
